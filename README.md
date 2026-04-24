@@ -5,7 +5,11 @@ A food delivery prediction AI for estimated delivery times
 ## Team Information
 
 - **Project Lead:** YesChef (jose.muniz@depaul.edu)
-- **Team Members:** *To be filled in*
+- **Team Members:** 
+    Abdul
+    Aviv
+    Imran
+    Jose
 
 ## Project Overview
 
