@@ -1,0 +1,21 @@
+site_name: Food on the Fly
+site_description: "A food delivery prediction AI for estimated delivery times"
+site_author: "YesChef"
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - API Reference: api.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc
