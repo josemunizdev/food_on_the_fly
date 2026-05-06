@@ -1,9 +1,10 @@
 """
 
+
 make_dataset.py - Data ingestion and train/val/test splitting
 Imran Ahmed
+
 Dataset: saurabhbadole/zomato-delivery-operations-analytics-dataset
-Run from repo root: python src/food_on_the_fly/data/make_dataset.py
 """
 
 import pandas as pd
@@ -43,23 +44,33 @@ print(f"Filtered {before - len(df)} bad rows, {len(df):,} remaining")
 
 # parse dates
 df["Order_Date"] = pd.to_datetime(df["Order_Date"], format="%d-%m-%Y", errors="coerce")
-print(f"Date range: {df['Order_Date'].min().date()} to {df['Order_Date'].max().date()}")
+min_date = df["Order_Date"].min()
+max_date = df["Order_Date"].max()
+print(f"Date range: {min_date.date()} to {max_date.date()}")
 
-# 70/15/15 split
-train, temp = train_test_split(df, test_size=0.30, random_state=42)
+# temporal split: first 40 days for modeling, last 14 days for drift monitoring
+cutoff = min_date + pd.Timedelta(days=40)
+modeling_data = df[df["Order_Date"] <= cutoff]
+drift_data = df[df["Order_Date"] > cutoff]
+print(f"\nFirst 40 days (modeling): {len(modeling_data):,} rows")
+print(f"Last 14 days (drift):    {len(drift_data):,} rows")
+
+# 70/15/15 split on the first 40 days only
+train, temp = train_test_split(modeling_data, test_size=0.30, random_state=42)
 val, test = train_test_split(temp, test_size=0.50, random_state=42)
 
-print(f"Train: {len(train):,} | Val: {len(val):,} | Test: {len(test):,}")
+print(f"\nTrain: {len(train):,} | Val: {len(val):,} | Test: {len(test):,}")
 
 # save to data/processed/
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 train.to_csv(PROCESSED_DIR / "train.csv", index=False)
 val.to_csv(PROCESSED_DIR / "val.csv", index=False)
 test.to_csv(PROCESSED_DIR / "test.csv", index=False)
+drift_data.to_csv(PROCESSED_DIR / "drift.csv", index=False)
 
 # print md5 hashes for DVC
 print("\nMD5 hashes:")
-for name in ["train", "val", "test"]:
+for name in ["train", "val", "test", "drift"]:
     path = PROCESSED_DIR / f"{name}.csv"
     h = hashlib.md5(open(path, "rb").read()).hexdigest()
     print(f"  {name}.csv -> {h}")
