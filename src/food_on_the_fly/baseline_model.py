@@ -1,28 +1,30 @@
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 import mlflow
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split
 
 # Step 1: Make fake delivery data
 np.random.seed(42)
-data = pd.DataFrame({
-    "distance_miles": np.random.uniform(1, 20, 500),
-    "traffic_level": np.random.randint(1, 5, 500),
-    "time_of_day": np.random.randint(0, 24, 500),
-})
+data = pd.DataFrame(
+    {
+        "distance_miles": np.random.uniform(1, 20, 500),
+        "traffic_level": np.random.randint(1, 5, 500),
+        "time_of_day": np.random.randint(0, 24, 500),
+    }
+)
 # Fake delivery time = roughly based on distance and traffic
 data["delivery_minutes"] = (
-    data["distance_miles"] * 3
-    + data["traffic_level"] * 5
-    + np.random.normal(0, 5, 500)
+    data["distance_miles"] * 3 + data["traffic_level"] * 5 + np.random.normal(0, 5, 500)
 )
 
 # Step 2: Split into train and test
 X = data[["distance_miles", "traffic_level", "time_of_day"]]
 y = data["delivery_minutes"]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 # Step 3: Train a simple model
 model = LinearRegression()
