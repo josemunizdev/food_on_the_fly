@@ -41,7 +41,7 @@ class HaversineTransformer(BaseEstimator, TransformerMixin):
             + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2.0) ** 2
         )
         c = 2 * np.arcsin(np.sqrt(a))
-        return (6371 * c).values.reshape(-1, 1)
+        return np.asarray((6371 * c).values).reshape(-1, 1)
 
     def get_feature_names_out(
         self, input_features: list[str] | None = None
