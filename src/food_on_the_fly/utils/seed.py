@@ -15,7 +15,7 @@ def set_seed(seed: int) -> None:
     np.random.seed(seed)
 
     try:
-        import torch
+        import torch  # type: ignore[import-not-found]
 
         torch.manual_seed(seed)
         if torch.cuda.is_available():
@@ -24,7 +24,7 @@ def set_seed(seed: int) -> None:
         pass
 
     try:
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[import-untyped]
 
         tf.random.set_seed(seed)
     except ImportError:
