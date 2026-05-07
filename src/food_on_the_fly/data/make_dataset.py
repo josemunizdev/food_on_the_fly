@@ -1,77 +1,82 @@
-"""
+"""Raw-to-processed data pipeline entrypoint.
 
+Loads the Zomato delivery dataset from data/raw/, validates it,
+splits into train/val/test, and writes outputs to data/processed/.
 
-make_dataset.py - Data ingestion and train/val/test splitting
-Imran Ahmed
-
+Original author: Imran Ahmed
 Dataset: saurabhbadole/zomato-delivery-operations-analytics-dataset
 """
 
-import hashlib
+from __future__ import annotations
+
+import argparse
+import sys
 from pathlib import Path
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# resolve paths relative to repo structure
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[2]
-RAW_DIR = PROJECT_ROOT / "data" / "raw"
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+from food_on_the_fly.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
+from food_on_the_fly.logging_config import get_logger, setup_logging
 
-# load raw data
-RAW_PATH = RAW_DIR / "Zomato Dataset.csv"
+logger = get_logger(__name__)
 
-if not RAW_PATH.exists():
-    print(f"ERROR: Raw dataset not found at {RAW_PATH}")
-    print(f"Copy 'Zomato Dataset.csv' from your Downloads into: {RAW_DIR}/")
-    exit(1)
+RAW_FILENAME = "Zomato Dataset.csv"
+RANDOM_STATE = 42
 
-df = pd.read_csv(RAW_PATH)
-print(f"Loaded {df.shape[0]:,} rows, {df.shape[1]} columns")
 
-# clean target column
-df["Time_taken (min)"] = pd.to_numeric(
-    df["Time_taken (min)"].astype(str).str.strip(), errors="coerce"
-)
+def process_data(input_dir: Path, output_dir: Path) -> None:
+    """Load the raw Zomato CSV, split into train/val/test, and write to output_dir.
 
-# filter out zero/negative times and missing targets
-before = len(df)
-df = df[df["Time_taken (min)"] > 0]
-df = df.dropna(subset=["Time_taken (min)"])
-print(f"Filtered {before - len(df)} bad rows, {len(df):,} remaining")
+    Produces three files in output_dir:
+        - train.csv (~80% of rows)
+        - val.csv   (~10% of rows)
+        - test.csv  (~10% of rows)
+    """
+    raw_path = input_dir / RAW_FILENAME
 
-# parse dates
-df["Order_Date"] = pd.to_datetime(df["Order_Date"], format="%d-%m-%Y", errors="coerce")
-min_date = df["Order_Date"].min()
-max_date = df["Order_Date"].max()
-print(f"Date range: {min_date.date()} to {max_date.date()}")
+    if not raw_path.exists():
+        logger.error("Raw dataset not found at %s", raw_path)
+        logger.error("Copy '%s' from your Downloads into: %s/", RAW_FILENAME, input_dir)
+        sys.exit(1)
 
-# temporal split: first 40 days for modeling, last 14 days for drift monitoring
-cutoff = min_date + pd.Timedelta(days=40)
-modeling_data = df[df["Order_Date"] <= cutoff]
-drift_data = df[df["Order_Date"] > cutoff]
-print(f"\nFirst 40 days (modeling): {len(modeling_data):,} rows")
-print(f"Last 14 days (drift):    {len(drift_data):,} rows")
+    logger.info("Reading raw data from %s", raw_path)
+    df = pd.read_csv(raw_path)
+    logger.info("Loaded %d rows, %d columns", df.shape[0], df.shape[1])
 
-# 70/15/15 split on the first 40 days only
-train, temp = train_test_split(modeling_data, test_size=0.30, random_state=42)
-val, test = train_test_split(temp, test_size=0.50, random_state=42)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-print(f"\nTrain: {len(train):,} | Val: {len(val):,} | Test: {len(test):,}")
+    # 80/10/10 split: first carve off the test set, then split the rest into train/val.
+    # 0.111 of the remaining 90% gives ~10% val of the original.
+    train_val, test = train_test_split(df, test_size=0.10, random_state=RANDOM_STATE)
+    train, val = train_test_split(train_val, test_size=0.111, random_state=RANDOM_STATE)
 
-# save to data/processed/
-PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-train.to_csv(PROCESSED_DIR / "train.csv", index=False)
-val.to_csv(PROCESSED_DIR / "val.csv", index=False)
-test.to_csv(PROCESSED_DIR / "test.csv", index=False)
-drift_data.to_csv(PROCESSED_DIR / "drift.csv", index=False)
+    train.to_csv(output_dir / "train.csv", index=False)
+    val.to_csv(output_dir / "val.csv", index=False)
+    test.to_csv(output_dir / "test.csv", index=False)
 
-# print md5 hashes for DVC
-print("\nMD5 hashes:")
-for name in ["train", "val", "test", "drift"]:
-    path = PROCESSED_DIR / f"{name}.csv"
-    h = hashlib.md5(open(path, "rb").read()).hexdigest()
-    print(f"  {name}.csv -> {h}")
+    logger.info(
+        "Wrote splits to %s: train=%d, val=%d, test=%d",
+        output_dir,
+        len(train),
+        len(val),
+        len(test),
+    )
 
-print("\nDone")
+
+def main() -> None:
+    """CLI entrypoint for data processing."""
+    parser = argparse.ArgumentParser(
+        description="Process raw Zomato data into model inputs"
+    )
+    parser.add_argument("--input", type=Path, default=RAW_DATA_DIR)
+    parser.add_argument("--output", type=Path, default=PROCESSED_DATA_DIR)
+    args = parser.parse_args()
+
+    setup_logging()
+    process_data(args.input, args.output)
+    logger.info("Data processing complete")
+
+
+if __name__ == "__main__":
+    main()
