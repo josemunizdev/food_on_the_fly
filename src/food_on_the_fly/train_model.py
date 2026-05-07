@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import hydra
 import mlflow
@@ -44,11 +45,14 @@ def main(cfg: DictConfig) -> None:
     mlflow.set_experiment(cfg.mlflow.experiment_name)
 
     with mlflow.start_run(run_name=cfg.mlflow.run_name):
-        params = OmegaConf.to_container(cfg.model.parameters, resolve=True)
+        # Log config parameters to MLflow (with type safety)
+        params = OmegaConf.to_container(cfg, resolve=True)
         if isinstance(params, dict):
-            mlflow.log_params(params)
+            # Ensure all keys are strings as required by MLflow
+            string_params: dict[str, Any] = {str(k): v for k, v in params.items()}
+            mlflow.log_params(string_params)
         else:
-            logger.warning("Model parameters could not be converted to dict format")
+            logger.warning("Config could not be converted to dict format for MLflow")
 
         # Load pre-split data
         logger.info("Loading pre-split training and validation data...")
