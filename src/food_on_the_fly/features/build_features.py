@@ -26,10 +26,10 @@ class HaversineTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        lat1, lon1, lat2, lon2 = map(np.radians, [
-            X[self.lat_col1], X[self.lon_col1],
-            X[self.lat_col2], X[self.lon_col2]
-        ])
+        lat1, lon1, lat2, lon2 = map(
+            np.radians,
+            [X[self.lat_col1], X[self.lon_col1], X[self.lat_col2], X[self.lon_col2]],
+        )
         dlat = lat2 - lat1
         dlon = lon2 - lon1
         a = (
