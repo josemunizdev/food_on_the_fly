@@ -1,0 +1,19 @@
+name: verify-source-is-dev
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-source-is-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the source branch is dev
+        run: |
+          if [ "${{ github.head_ref }}" != "dev" ]; then
+            echo "::error::PRs into main are only allowed from the dev branch."
+            echo "This PR is from: ${{ github.head_ref }}"
+            echo "Please retarget your PR to dev, or merge dev into main instead."
+            exit 1
+          fi
+          echo "Source branch is dev. Allowed."
