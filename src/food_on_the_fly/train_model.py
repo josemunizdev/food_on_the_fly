@@ -44,7 +44,11 @@ def main(cfg: DictConfig) -> None:
     mlflow.set_experiment(cfg.mlflow.experiment_name)
 
     with mlflow.start_run(run_name=cfg.mlflow.run_name):
-        mlflow.log_params(OmegaConf.to_container(cfg.model.parameters, resolve=True))
+        params = OmegaConf.to_container(cfg.model.parameters, resolve=True)
+        if isinstance(params, dict):
+            mlflow.log_params(params)
+        else:
+            logger.warning("Model parameters could not be converted to dict format")
 
         # Load pre-split data
         logger.info("Loading pre-split training and validation data...")
