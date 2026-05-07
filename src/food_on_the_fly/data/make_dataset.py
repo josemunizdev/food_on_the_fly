@@ -66,7 +66,9 @@ def process_data(input_dir: Path, output_dir: Path) -> None:
 
 def main() -> None:
     """CLI entrypoint for data processing."""
-    parser = argparse.ArgumentParser(description="Process raw Zomato data into model inputs")
+    parser = argparse.ArgumentParser(
+        description="Process raw Zomato data into model inputs"
+    )
     parser.add_argument("--input", type=Path, default=RAW_DATA_DIR)
     parser.add_argument("--output", type=Path, default=PROCESSED_DATA_DIR)
     args = parser.parse_args()
