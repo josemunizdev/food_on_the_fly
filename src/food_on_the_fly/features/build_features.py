@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from typing import Any
+
 import numpy as np
 import pandas as pd
+from omegaconf import DictConfig
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from omegaconf import DictConfig
 from food_on_the_fly.logging_config import get_logger
 
 logger = get_logger(__name__)
