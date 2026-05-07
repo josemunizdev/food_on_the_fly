@@ -47,6 +47,10 @@ python_version = "3.13"
 warn_return_any = true
 disallow_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = ["joblib", "pandas", "pandas.*", "sklearn", "sklearn.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"

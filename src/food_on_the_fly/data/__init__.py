@@ -1,6 +1,5 @@
 """Data loading and preprocessing."""
 
 from food_on_the_fly.data.loaders import load_processed, load_raw, save_processed
-from food_on_the_fly.data.make_dataset import process_data
 
-__all__ = ["load_raw", "load_processed", "save_processed", "process_data"]
+__all__ = ["load_raw", "load_processed", "save_processed"]
