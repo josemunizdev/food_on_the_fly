@@ -20,10 +20,9 @@ REPORTS_DIR: Path = PROJECT_ROOT / "reports"
 FIGURES_DIR: Path = REPORTS_DIR / "figures"
 CONFIG_DIR: Path = PROJECT_ROOT / "configs"
 
+
 def load_config(config_name: str = "config.yaml") -> DictConfig:
     """Load the project configuration from a YAML file."""
-    with initialize_config_dir(version_base = None, config_dir=str(CONFIG_DIR)):
+    with initialize_config_dir(version_base=None, config_dir=str(CONFIG_DIR)):
         config = compose(config_name=config_name)
     return config
-
-
