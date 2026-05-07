@@ -1,23 +1,16 @@
-"""
-Visualization utilities for Food on the Fly.
+"""Visualization utilities for Food on the Fly."""
 
-This module contains functions for creating plots, charts, and other visualizations.
-"""
+from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 
 
 def plot_training_history(
-    history: dict[str, list[float]], output_path: Optional[str] = None
+    history: dict[str, list[float]], output_path: str | None = None
 ) -> None:
-    """Plot training history curves.
-
-    Args:
-        history: Dictionary containing training metrics.
-        output_path: Optional path to save the plot.
-    """
+    """Plot training history curves."""
     fig, ax = plt.subplots(figsize=(10, 6))
 
     for metric, values in history.items():
@@ -38,15 +31,9 @@ def plot_training_history(
 
 
 def plot_confusion_matrix(
-    cm: Any, labels: Optional[list[str]] = None, output_path: Optional[str] = None
+    cm: Any, labels: list[str] | None = None, output_path: str | None = None
 ) -> None:
-    """Plot a confusion matrix.
-
-    Args:
-        cm: Confusion matrix array.
-        labels: Optional class labels.
-        output_path: Optional path to save the plot.
-    """
+    """Plot a confusion matrix."""
     fig, ax = plt.subplots(figsize=(8, 8))
 
     im = ax.imshow(cm, cmap="Blues")

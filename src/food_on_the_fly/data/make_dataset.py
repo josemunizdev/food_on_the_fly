@@ -7,12 +7,11 @@ Imran Ahmed
 Dataset: saurabhbadole/zomato-delivery-operations-analytics-dataset
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
 import hashlib
-import os
 from pathlib import Path
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 # resolve paths relative to repo structure
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -75,4 +74,4 @@ for name in ["train", "val", "test", "drift"]:
     h = hashlib.md5(open(path, "rb").read()).hexdigest()
     print(f"  {name}.csv -> {h}")
 
-print(f"\nDone")
+print("\nDone")
