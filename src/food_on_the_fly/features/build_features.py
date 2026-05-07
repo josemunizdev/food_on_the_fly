@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import Any
-
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from omegaconf import DictConfig
 from food_on_the_fly.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -49,7 +49,18 @@ class HaversineTransformer(BaseEstimator, TransformerMixin):
         return np.array(["distance_km"])
 
 
-def build_features(df: pd.DataFrame) -> pd.DataFrame:
+def create_haversine_transformer(config: DictConfig) -> HaversineTransformer:
+    """Factory function to create a HaversineTransformer from config."""
+    params = config.features.haversine
+    return HaversineTransformer(
+        lat_col1=params.lat_col1,
+        lon_col1=params.lon_col1,
+        lat_col2=params.lat_col2,
+        lon_col2=params.lon_col2,
+    )
+
+
+def build_features(df: pd.DataFrame, config: DictConfig) -> pd.DataFrame:
     """Derive model-ready features from a processed dataframe.
 
     Keep transformations deterministic and side-effect free so the

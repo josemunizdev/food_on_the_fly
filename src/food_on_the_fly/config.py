@@ -6,8 +6,10 @@ on the current working directory.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
+
+from hydra import compose, initialize_config_dir
+from omegaconf import DictConfig
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 DATA_DIR: Path = PROJECT_ROOT / "data"
@@ -16,34 +18,12 @@ PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
 MODELS_DIR: Path = PROJECT_ROOT / "models"
 REPORTS_DIR: Path = PROJECT_ROOT / "reports"
 FIGURES_DIR: Path = REPORTS_DIR / "figures"
+CONFIG_DIR: Path = PROJECT_ROOT / "configs"
+
+def load_config(config_name: str = "config.yaml") -> DictConfig:
+    """Load the project configuration from a YAML file."""
+    with initialize_config_dir(version_base = None, config_dir=str(CONFIG_DIR)):
+        config = compose(config_name=config_name)
+    return config
 
 
-@dataclass(frozen=True)
-class TrainingConfig:
-    """Hyperparameters and training-run settings."""
-
-    epochs: int = 10
-    batch_size: int = 32
-    learning_rate: float = 1e-3
-    seed: int = 42
-    early_stopping_patience: int = 10
-
-
-@dataclass(frozen=True)
-class DataConfig:
-    """Data-split and preprocessing settings."""
-
-    train_test_split: float = 0.8
-    val_split: float = 0.1
-    seed: int = 42
-
-
-@dataclass(frozen=True)
-class Config:
-    """Top-level configuration composing sub-configs."""
-
-    training: TrainingConfig = field(default_factory=TrainingConfig)
-    data: DataConfig = field(default_factory=DataConfig)
-
-
-DEFAULT_CONFIG = Config()
