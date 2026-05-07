@@ -13,20 +13,47 @@ A food delivery prediction AI for estimated delivery times
 
 ## Project Overview
 
-Food on the Fly is a machine learning project that implements A food delivery prediction AI for estimated delivery times.
+Food on the Fly is an end-to-end MLOps project that predicts food delivery times for the Zomato delivery network. Using historical delivery data — including GPS coordinates, weather, traffic density, and vehicle type — the system trains a regression model to estimate time-to-delivery in minutes. The pipeline is designed for reproducibility, continuous integration, and eventual deployment as an API service.
 
 **Key Objectives:**
-- [ ] Objective 1
-- [ ] Objective 2
-- [ ] Objective 3
+
+- Build an accurate delivery time regression model using the Zomato delivery operations dataset (~45 000 orders)
+- Implement a reproducible, version-controlled ML pipeline with DVC-tracked data and MLflow experiment tracking
+- Deploy a production-ready system with CI/CD, Docker containerization, and a FastAPI inference endpoint
 
 ## Architecture Diagram
 
-```
-[Placeholder for architecture diagram]
+```mermaid
+flowchart TD
+    subgraph Data
+        A[(Kaggle\nZomato Dataset)] -->|kagglehub| B[make_dataset.py\nClean · Split · Hash]
+        B -->|DVC track| C[(data/processed/\ntrain · val · test · drift)]
+    end
 
-Insert your system architecture diagram here, showing data flow, components,
-and interactions between different parts of the system.
+    subgraph Features
+        C --> D[build_features.py\nHaversineTransformer\nDistance km]
+    end
+
+    subgraph Training
+        D --> E[train_model.py\nsklearn Pipeline]
+        E -->|log runs| F[(MLflow\nExperiment Tracking)]
+        E -->|joblib| G[(models/\nmodel.joblib)]
+    end
+
+    subgraph Inference
+        G --> H[predict_model.py\nBatch Scoring]
+        H --> I[predictions.csv]
+    end
+
+    subgraph CI/CD
+        J[GitHub Actions] --> K[ruff lint · format]
+        J --> L[mypy type-check]
+        J --> M[pytest · codecov]
+    end
+
+    subgraph Config
+        N[Hydra · OmegaConf\nconfigs/config.yaml] --> E
+    end
 ```
 
 ## Phase Deliverables
