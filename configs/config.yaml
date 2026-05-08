@@ -1,15 +1,21 @@
-
 # Hydra configuration for Food on the Fly
-
 defaults:
   - _self_
 
 model:
-  name: default_model
-  type: sklearn
-  parameters:
-    max_depth: 10
-    min_samples_split: 2
+  name: xgboost_delivery_predictor                     
+  type: xgboost                                        
+  parameters:                                          
+    n_estimators: 100                               
+    max_depth: 6                            
+    learning_rate: 0.1                       
+    objective: 'reg:squarederror'            
+    random_state: 42
+
+mlflow:                                                
+  tracking_uri: "file:./mlruns"               
+  experiment_name: "food_delivery_prediction" 
+  run_name: "xgboost_baseline"
 
 data:
   raw_path: data/raw
@@ -17,6 +23,14 @@ data:
   train_test_split: 0.8
   random_state: 42
   val_split: 0.1
+
+features:                                              
+  haversine:
+    lat_col1: Restaurant_latitude
+    lon_col1: Restaurant_longitude
+    lat_col2: Delivery_location_latitude
+    lon_col2: Delivery_location_longitude                                        
+    
 
 training:
   epochs: 100
@@ -42,3 +56,5 @@ paths:
   models_dir: models
   logs_dir: logs
   predictions_dir: predictions
+
+
