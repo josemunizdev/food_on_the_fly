@@ -16,9 +16,7 @@ data = pd.DataFrame(
 )
 # Fake delivery time = roughly based on distance and traffic
 data["delivery_minutes"] = (
-    data["distance_miles"] * 3
-    + data["traffic_level"] * 5
-    + np.random.normal(0, 5, 500)
+    data["distance_miles"] * 3 + data["traffic_level"] * 5 + np.random.normal(0, 5, 500)  # noqa: E501
 )
 
 # Step 2: Split into train and test
