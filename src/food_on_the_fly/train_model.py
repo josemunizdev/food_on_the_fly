@@ -7,7 +7,7 @@ from typing import Any
 
 import hydra
 import mlflow
-import mlflow.xgboost
+import mlflow.sklearn
 import numpy as np
 import xgboost as xgb
 from omegaconf import DictConfig, OmegaConf
