@@ -1,59 +1,63 @@
 """Raw-to-processed data pipeline entrypoint.
 
-Loads the Zomato delivery dataset from data/raw/, validates it,
-splits into train/val/test, and writes outputs to data/processed/.
+Reads the food delivery dataset from the GCS URI defined in
+configs/config.yaml (data.source_uri), splits it into train/val/test,
+and writes the splits to data/processed/ for use by train_model.py.
 
-Original author: Imran Ahmed
-Dataset: saurabhbadole/zomato-delivery-operations-analytics-dataset
+Run from the repo root with:
+    make data
+    # or:
+    python -m food_on_the_fly.data.make_dataset
 """
 
 from __future__ import annotations
 
-import argparse
-import sys
 from pathlib import Path
 
-import pandas as pd
+import hydra
+from omegaconf import DictConfig
 from sklearn.model_selection import train_test_split
 
-from food_on_the_fly.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
+from food_on_the_fly.config import PROCESSED_DATA_DIR
+from food_on_the_fly.data.loaders import load_dataset
 from food_on_the_fly.logging_config import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
-RAW_FILENAME = "Zomato Dataset.csv"
-RANDOM_STATE = 42
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+CONFIG_DIR = str(PROJECT_ROOT / "configs")
 
 
-def process_data(input_dir: Path, output_dir: Path) -> None:
-    """Load the raw Zomato CSV, split into train/val/test, and write to output_dir.
+@hydra.main(version_base=None, config_path=CONFIG_DIR, config_name="config")
+def main(cfg: DictConfig) -> None:
+    """Read the dataset from cfg.data.source_uri and write train/val/test splits."""
+    setup_logging()
 
-    Produces three files in output_dir:
-        - train.csv (~80% of rows)
-        - val.csv   (~10% of rows)
-        - test.csv  (~10% of rows)
-    """
-    raw_path = input_dir / RAW_FILENAME
-
-    if not raw_path.exists():
-        logger.error("Raw dataset not found at %s", raw_path)
-        logger.error("Copy '%s' from your Downloads into: %s/", RAW_FILENAME, input_dir)
-        sys.exit(1)
-
-    logger.info("Reading raw data from %s", raw_path)
-    df = pd.read_csv(raw_path)
-    logger.info("Loaded %d rows, %d columns", df.shape[0], df.shape[1])
-
+    output_dir = PROCESSED_DATA_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # 80/10/10 split: first carve off the test set, then split the rest into train/val.
-    # 0.111 of the remaining 90% gives ~10% val of the original.
-    train_val, test = train_test_split(df, test_size=0.10, random_state=RANDOM_STATE)
-    train, val = train_test_split(train_val, test_size=0.111, random_state=RANDOM_STATE)
+    logger.info("Reading dataset from %s", cfg.data.source_uri)
+    df = load_dataset(cfg.data.source_uri)
+    logger.info("Loaded %d rows, %d columns", df.shape[0], df.shape[1])
 
-    train.to_csv(output_dir / "train.csv", index=False)
-    val.to_csv(output_dir / "val.csv", index=False)
-    test.to_csv(output_dir / "test.csv", index=False)
+    test_split = 1.0 - cfg.data.train_test_split
+    val_relative = cfg.data.val_split / (cfg.data.train_test_split + cfg.data.val_split)
+
+    # First carve off the test set, then split the remainder into train/val.
+    train_val, test = train_test_split(
+        df, test_size=test_split, random_state=cfg.data.random_state
+    )
+    train, val = train_test_split(
+        train_val, test_size=val_relative, random_state=cfg.data.random_state
+    )
+
+    train_path = output_dir / "train.csv"
+    val_path = output_dir / "val.csv"
+    test_path = output_dir / "test.csv"
+
+    train.to_csv(train_path, index=False)
+    val.to_csv(val_path, index=False)
+    test.to_csv(test_path, index=False)
 
     logger.info(
         "Wrote splits to %s: train=%d, val=%d, test=%d",
@@ -62,20 +66,7 @@ def process_data(input_dir: Path, output_dir: Path) -> None:
         len(val),
         len(test),
     )
-
-
-def main() -> None:
-    """CLI entrypoint for data processing."""
-    parser = argparse.ArgumentParser(
-        description="Process raw Zomato data into model inputs"
-    )
-    parser.add_argument("--input", type=Path, default=RAW_DATA_DIR)
-    parser.add_argument("--output", type=Path, default=PROCESSED_DATA_DIR)
-    args = parser.parse_args()
-
-    setup_logging()
-    process_data(args.input, args.output)
-    logger.info("Data processing complete")
+    logger.info("Data processing complete. Run `make train` next.")
 
 
 if __name__ == "__main__":
