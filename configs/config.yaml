@@ -18,6 +18,11 @@ mlflow:
   run_name: "xgboost_baseline"
 
 data:
+  # Single source of truth for the raw dataset. Works locally (with
+  # `gcloud auth application-default login`) and in cloud (via the
+  # runtime service account). Override with --config-name or
+  # data.source_uri=<path> at the CLI for offline / dev work.
+  source_uri: "gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/food_delivery.csv"
   raw_path: data/raw
   processed_path: data/processed
   train_test_split: 0.8
