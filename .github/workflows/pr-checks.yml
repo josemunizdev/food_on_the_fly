@@ -5,18 +5,47 @@ on:
     branches:
       - main
       - dev
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  branch-policy:
-    name: Branch policy
+  validate-branch-name:
+    name: Validate branch name
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce merge direction and branch naming
+      - name: Branch must be named feature/* or fix/*
         run: |
-          TARGET="${{ github.base_ref }}"
           SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+          echo "Source branch: $SOURCE"
+          echo "Target branch: $TARGET"
 
+          # Naming rule applies for PRs into dev. PRs into main come from
+          # dev (validated in the next job), and dev itself is exempt.
+          if [ "$TARGET" = "dev" ]; then
+            if [[ ! "$SOURCE" =~ ^(feature|fix)/.+ ]]; then
+              echo "::error::Branch name '$SOURCE' is invalid. Must be feature/<name> or fix/<name>."
+              echo "Rename your branch with: git branch -m feature/<descriptive-name>"
+              exit 1
+            fi
+            echo "OK: branch name '$SOURCE' matches feature/* or fix/*."
+          else
+            echo "OK: branch naming rule does not apply for target '$TARGET'."
+          fi
+
+  validate-branch-direction:
+    name: Validate branch direction
+    if: github.event_name == 'pull_request'
+    needs: validate-branch-name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce feature/* or fix/* -> dev -> main
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
           echo "Source branch: $SOURCE"
           echo "Target branch: $TARGET"
 
@@ -28,17 +57,19 @@ jobs:
             fi
             echo "OK: dev -> main is allowed."
           elif [ "$TARGET" = "dev" ]; then
-            if [[ ! "$SOURCE" =~ ^(feature|fix)/.+ ]]; then
-              echo "::error::PRs into dev must come from a branch named feature/<name> or fix/<name>. This PR is from: $SOURCE"
-              echo "Rename your branch with: git branch -m feature/<descriptive-name>"
-              exit 1
-            fi
             echo "OK: $SOURCE -> dev is allowed."
+          else
+            echo "::error::Unexpected target branch '$TARGET'. PRs are only allowed into main or dev."
+            exit 1
           fi
 
   lint-and-test:
     name: Lint and test
-    needs: branch-policy
+    needs: validate-branch-direction
+    # Run when:
+    #   - on PR: branch direction succeeded
+    #   - on push to main: branch validation jobs were skipped (no PR context)
+    if: ${{ !cancelled() && (needs.validate-branch-direction.result == 'success' || needs.validate-branch-direction.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

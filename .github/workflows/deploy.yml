@@ -1,13 +1,22 @@
 name: Build and deploy to Cloud Run
 
 on:
-  push:
+  # Strict chaining: only fires after "PR checks" completes on main.
+  # This means a merge to main triggers PR checks (re-running lint/test
+  # on the merge commit), and only if those pass does this deploy run.
+  workflow_run:
+    workflows: ["PR checks"]
+    types: [completed]
     branches:
       - main
   workflow_dispatch:
 
 jobs:
   deploy:
+    name: Build, push, deploy
+    # Gate on the upstream workflow having succeeded. Manual dispatch
+    # always allowed for emergency redeploys.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -18,6 +27,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # workflow_run-triggered jobs default to checking out the
+          # default branch's HEAD. Pin to the exact commit that the
+          # upstream pr-checks workflow ran on so the image we build
+          # matches what was tested.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - id: auth
         uses: google-github-actions/auth@v2
@@ -34,7 +49,7 @@ jobs:
       - name: Build and push image
         id: build
         run: |
-          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/api:${{ github.sha }}"
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/api:${{ github.event.workflow_run.head_sha || github.sha }}"
           docker build -t "$IMAGE" -f dockerfiles/Dockerfile .
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
