@@ -1,0 +1,111 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-branch-name:
+    name: Validate branch name
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Branch must be named feature/* or fix/*
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+          echo "Source branch: $SOURCE"
+          echo "Target branch: $TARGET"
+
+          # Naming rule applies for PRs into dev. PRs into main come from
+          # dev (validated in the next job), and dev itself is exempt.
+          if [ "$TARGET" = "dev" ]; then
+            if [[ ! "$SOURCE" =~ ^(feature|fix)/.+ ]]; then
+              echo "::error::Branch name '$SOURCE' is invalid. Must be feature/<name> or fix/<name>."
+              echo "Rename your branch with: git branch -m feature/<descriptive-name>"
+              exit 1
+            fi
+            echo "OK: branch name '$SOURCE' matches feature/* or fix/*."
+          else
+            echo "OK: branch naming rule does not apply for target '$TARGET'."
+          fi
+
+  validate-branch-direction:
+    name: Validate branch direction
+    if: github.event_name == 'pull_request'
+    needs: validate-branch-name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce feature/* or fix/* -> dev -> main
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+          echo "Source branch: $SOURCE"
+          echo "Target branch: $TARGET"
+
+          if [ "$TARGET" = "main" ]; then
+            if [ "$SOURCE" != "dev" ]; then
+              echo "::error::PRs into main must come from dev. This PR is from: $SOURCE"
+              echo "Either retarget the PR to dev, or merge dev into main instead."
+              exit 1
+            fi
+            echo "OK: dev -> main is allowed."
+          elif [ "$TARGET" = "dev" ]; then
+            echo "OK: $SOURCE -> dev is allowed."
+          else
+            echo "::error::Unexpected target branch '$TARGET'. PRs are only allowed into main or dev."
+            exit 1
+          fi
+
+  lint-and-test:
+    name: Lint and test
+    needs: validate-branch-direction
+    # Run when:
+    #   - on PR: branch direction succeeded
+    #   - on push to main: branch validation jobs were skipped (no PR context)
+    if: ${{ !cancelled() && (needs.validate-branch-direction.result == 'success' || needs.validate-branch-direction.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Format check with ruff
+        run: ruff format --check .
+
+      - name: Install project
+        run: pip install -e .
+
+      - name: Type check with mypy
+        run: mypy src
+
+      - name: Run tests with pytest
+        run: pytest tests/ --cov=food_on_the_fly --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
