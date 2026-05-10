@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from food_on_the_fly.data.loaders import load_dataset
 
-
 GCS_URI = "gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/zomato_dataset.csv"
 
 
