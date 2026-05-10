@@ -1,0 +1,46 @@
+# CODEOWNERS for food_on_the_fly
+#
+# When a PR modifies files matching these patterns, the listed owners
+# are automatically requested as reviewers. Patterns are matched
+# against the file path; later patterns override earlier ones for the
+# same files.
+#
+# Multiple owners on a single line means any one of them can approve.
+#
+# Team:
+#   @josemunizdev  — Features Lead, project owner
+#   @imran12234    — Data Lead
+#   @amomin1993    — Modeling Lead
+#   @avivkatz1     — Platform / Deployment Lead
+
+# Default owner — applied to anything not matched by a more specific rule below.
+* @josemunizdev
+
+# Data ingestion and preprocessing.
+src/food_on_the_fly/data/         @imran12234
+configs/                          @imran12234 @josemunizdev
+
+# Modeling code, training, evaluation.
+src/food_on_the_fly/models/       @amomin1993
+src/food_on_the_fly/train_model.py @amomin1993
+src/food_on_the_fly/baseline_model.py @amomin1993
+src/food_on_the_fly/evaluation/   @amomin1993
+
+# Feature engineering.
+src/food_on_the_fly/features/     @josemunizdev
+
+# Deployment, CI/CD, infrastructure, container, API surface.
+.github/workflows/                @avivkatz1
+.github/CODEOWNERS                @avivkatz1 @josemunizdev
+dockerfiles/                      @avivkatz1
+api/                              @avivkatz1
+docker-compose.yaml               @avivkatz1
+Makefile                          @avivkatz1
+
+# Documentation — anyone on the team can review.
+*.md                              @josemunizdev @imran12234 @amomin1993 @avivkatz1
+docs/                             @josemunizdev @imran12234 @amomin1993 @avivkatz1
+
+# Tests — modeling tests to Modeling Lead, others to project owner.
+tests/test_model.py               @amomin1993
+tests/                            @josemunizdev
