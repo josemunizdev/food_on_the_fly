@@ -12,6 +12,7 @@ You'll need the following installed on your machine before starting:
 | Python 3.13 | Project runtime (matches CI) | `brew install python@3.13` |
 | Git | Source control | Comes with Xcode CLI tools, or `brew install git` |
 | gcloud CLI | GCP auth and bucket access | `brew install --cask google-cloud-sdk` |
+| libomp | Required by XGBoost on macOS | `brew install libomp` |
 
 Verify each one:
 
@@ -42,7 +43,7 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 ```
 
-Your prompt should now show `(.venv)` at the start. If it doesn't, the activation didn't work and the rest will fail.
+Your prompt should now show `(.venv)` at the start. If it doesn't, activation failed.
 
 ### 3. Install the project and dependencies
 
@@ -54,9 +55,9 @@ pip install -e .
 pre-commit install
 ```
 
-The `pip install -e .` puts the project itself on your path so `from food_on_the_fly import ...` works in scripts. `pre-commit install` wires up the formatter and linter to run automatically on `git commit`.
+The `pip install -e .` puts the project itself on your path so `from food_on_the_fly import ...` works in scripts. `pre-commit install` wires up the formatter and linter to run on `git commit`.
 
-You can also run all of that with `make dev` once the venv is active.
+You can also do all of that with `make dev` once the venv is active.
 
 ### 4. Fix Python SSL certificates (python.org installer only)
 
@@ -66,11 +67,11 @@ If you installed Python from python.org instead of Homebrew, run this once or yo
 /Applications/Python\ 3.13/Install\ Certificates.command
 ```
 
-Homebrew Python users can skip this step.
+Homebrew Python users skip this step.
 
 ### 5. Authenticate with GCP
 
-The dataset and model artifacts live in a private GCS bucket. You need two auth steps. Both happen on your local machine, not in Cloud Shell.
+The dataset and model artifacts live in a private GCS bucket. You need two auth steps. Both happen on your laptop, not in Cloud Shell.
 
 ```bash
 # Auth the gcloud CLI itself
@@ -85,7 +86,7 @@ gcloud config set project project-9aed1f8e-f40e-4a15-858
 
 Each command opens a browser tab. Authorize with the Google account that has been added to the project, return to terminal.
 
-If you haven't been added to the GCP project or the GCS bucket yet, ask Jose to grant you `Storage Object Viewer` on the bucket. Without that, the next step will return a 403.
+If you haven't been added to the GCS bucket yet, ask Jose to grant you `Storage Object Viewer`. Without that, the next step returns 403.
 
 ### 6. Verify GCS read access
 
@@ -94,20 +95,28 @@ gcloud storage ls gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/
 python scripts/test_data_load.py
 ```
 
-The first command should list the dataset CSV. The second should print the dataset shape (~45k rows) and column names.
+The first command should list `zomato_dataset.csv`. The second should print the dataset shape (~45k rows) and column names.
 
-If either fails, see Troubleshooting at the bottom of this doc.
+### 7. Run training end to end
+
+```bash
+make data    # pulls CSV from GCS, writes train/val/test splits to data/processed/
+make train   # trains XGBoost, logs to MLflow at ./mlruns/
+mlflow ui    # browse experiment runs at http://localhost:5000
+```
+
+If steps 6 and 7 succeed, your local environment is fully wired up.
 
 ## Daily workflow
 
 ### Branch and PR rules
 
-These are enforced by the `PR checks` GitHub Actions workflow. PRs that violate them are blocked at the check stage, not at merge.
+These are enforced by GitHub Actions. PRs that violate them are blocked at the check stage.
 
-- **Feature work goes on `feature/<name>` branches**, fixes go on `fix/<name>` branches. No other prefixes are allowed.
-- **PRs into `dev` must come from a `feature/*` or `fix/*` branch.** Never PR directly to main.
+- **Feature work goes on `feature/<name>` branches.** Fixes go on `fix/<name>` branches. No other prefixes.
+- **PRs into `dev` must come from `feature/*` or `fix/*`.** Never PR directly to main.
 - **PRs into `main` must come from `dev`.** Use main only for releases.
-- **All PRs are reviewed by GitHub Copilot automatically** plus at least one human teammate.
+- **All PRs are reviewed by Copilot automatically** plus at least one human teammate.
 
 The flow:
 
@@ -126,12 +135,12 @@ git pull
 # Cut a feature or fix branch
 git checkout -b feature/add-distance-features
 
-# Make your changes...
+# Make changes...
 # Run lint and tests locally before pushing:
 make lint
 make test
 
-# Commit, push
+# Commit and push
 git add .
 git commit -m "Add haversine distance feature"
 git push -u origin feature/add-distance-features
@@ -145,23 +154,23 @@ Then open a PR on GitHub targeting `dev` (not main).
 |---|---|
 | `make dev` | Install everything (deps, project, pre-commit hooks) |
 | `make test` | Run pytest |
-| `make lint` | Run ruff lint and format check |
+| `make lint` | Ruff lint and format check |
 | `make format` | Auto-fix lint and format issues |
-| `make train` | Run training (once `train_model.py` is implemented) |
-| `make data` | Reserved for data prep tasks |
+| `make data` | Pull dataset from GCS, write train/val/test splits to data/processed/ |
+| `make train` | Train XGBoost with MLflow tracking |
 | `make docker_build` | Build the Cloud Run container locally |
 | `make clean` | Remove caches and build artifacts |
 
 ## How the data flows
 
-You don't manually download datasets. Here's why:
+You don't manually download datasets. Single source of truth lives in GCS:
 
 ```
-Kaggle (raw source)
+Kaggle (saurabhbadole/zomato-delivery-operations-analytics-dataset)
   │
   │ Jose downloads once via kagglehub
   ▼
-gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/deliverytime.csv  ← single source of truth
+gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/zomato_dataset.csv  ← single source of truth
   │
   ▼
 Your laptop reads directly from GCS via pandas + gcsfs
@@ -170,11 +179,11 @@ Your laptop reads directly from GCS via pandas + gcsfs
 data/processed/   ← local cache for processed splits, gitignored
   │
   ▼
-models/  ← trained models written here, then uploaded to GCS
+models/   ← trained models locally, then uploaded to GCS for inference
 ```
 
-Reading from GCS works in three places using the exact same code path:
-- Your laptop (with ADC from Step 5 above)
+Reading from GCS works in three places using the same code path:
+- Your laptop (with ADC from Step 5)
 - GitHub Actions (with WIF, no setup needed by you)
 - Vertex AI / Cloud Run (with the runtime service account, no setup)
 
@@ -182,7 +191,7 @@ So the same training script runs identically locally and in cloud.
 
 ## How CI/CD works
 
-Two GitHub Actions workflows govern the repo:
+Two workflows govern the repo:
 
 ### `pr-checks.yml` runs on every PR
 
@@ -194,16 +203,16 @@ Three sequential jobs. Each must pass before the next runs:
 
 If any job fails, downstream jobs are skipped and the PR is blocked.
 
-### `deploy.yml` runs after PR-checks succeeds on `main`
+### `deploy.yml` runs after `pr-checks` succeeds on `main`
 
 Triggered via `workflow_run` chaining. Sequence:
 
 1. PR is merged to main.
 2. `pr-checks` re-runs against the merge commit.
 3. If it passes, `deploy` fires automatically.
-4. Deploy authenticates to GCP via Workload Identity Federation, builds the Docker image, pushes to Artifact Registry, and deploys to Cloud Run.
+4. Deploy authenticates to GCP via Workload Identity Federation, builds the Docker image, pushes to Artifact Registry, deploys to Cloud Run.
 
-You don't need any GCP credentials on your machine for deploy to work. WIF handles auth for GitHub Actions automatically.
+You don't need any GCP credentials on your machine for deploy to work. WIF handles GitHub Actions auth.
 
 ## Troubleshooting
 
@@ -211,24 +220,28 @@ You don't need any GCP credentials on your machine for deploy to work. WIF handl
 
 **`ModuleNotFoundError: No module named 'food_on_the_fly'`** — Either your venv isn't active (`source .venv/bin/activate`), or you didn't run `pip install -e .`.
 
-**`ModuleNotFoundError: No module named 'gcsfs'`** — `pip install -r requirements.txt` to refresh deps.
+**`ModuleNotFoundError: No module named 'gcsfs'`** — Run `pip install -r requirements.txt` to refresh deps.
 
-**`403 Forbidden` reading from GCS** — You haven't been added to the bucket. Ping Jose to grant you `Storage Object Viewer`.
+**`403 Forbidden` reading from GCS** — You haven't been added to the bucket. Ping Jose for `Storage Object Viewer` access.
 
-**`401` or `Reauthentication required`** — ADC token expired. Run `gcloud auth application-default login` again.
+**`401` or `Reauthentication required`** — ADC token expired. Re-run `gcloud auth application-default login`.
 
-**Pasting multi-line commands hangs in Terminal** — Probably an unclosed quote. Hit Ctrl+C, try again. Better: save to a file and run with `python <file>`.
+**`XGBoost Library could not be loaded` / `libomp.dylib not found`** — Run `brew install libomp` (macOS only).
 
-**Tests fail locally but pass on someone else's machine** — Check your Python version. Run `python --version` inside the venv. Should be 3.13.x. If it's not, recreate the venv with `python3.13 -m venv .venv`.
+**`badly formed help string` from Hydra** — You're on Python 3.14, but the project requires 3.13. Recreate your venv: `deactivate && rm -rf .venv && python3.13 -m venv .venv && source .venv/bin/activate && make dev`.
+
+**Pasting multi-line commands hangs in Terminal** — Probably an unclosed quote. Hit Ctrl+C, try again. Better: save the code to a file and run with `python <file>`.
+
+**Tests fail locally but pass on CI (or vice versa)** — Check your Python version. Run `python --version` inside the venv. Should be 3.13.x.
 
 **`pre-commit` complaining on every commit** — That's it doing its job. Run `make format` to auto-fix.
 
 ## Want Claude in your editor?
 
-The project is set up to play well with Claude Code in VS Code. Install the Claude Code VS Code extension, open the repo, and Claude will read the conventions from any `CLAUDE.md` we drop in the project root. Useful for keeping every teammate's AI assistant aligned on project rules.
+The project plays well with Claude Code in VS Code. Install the Claude Code VS Code extension, open the repo, and Claude reads any `CLAUDE.md` in the project root for conventions. Useful for keeping every teammate's AI assistant aligned on project rules.
 
-Not required for any of the above to work. Just a nice-to-have.
+Not required for any of the above. Just a quality-of-life upgrade.
 
 ## Need help
 
-If you're stuck on something not covered here, check the Troubleshooting section first, then ask in our group chat or open a GitHub issue. If you find a gotcha worth documenting, please update this file as part of your next PR.
+If you're stuck on something not covered here, check Troubleshooting first, then ask in our group chat or open a GitHub issue. If you find a gotcha worth documenting, please update this file as part of your next PR.
