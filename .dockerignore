@@ -1,0 +1,32 @@
+# .dockerignore
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+
+# MLflow (local experiments)
+mlruns/
+
+# Data files (pulled from GCS at runtime)
+data/raw/*
+data/processed/*
+
+# Logs
+logs/
+*.log

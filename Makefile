@@ -44,8 +44,14 @@ clean:
 docker_build:
 	docker build -t food_on_the_fly -f dockerfiles/Dockerfile .
 
-docker_run:
-	docker run --rm food_on_the_fly
+docker_run_data:                                                                                                        
+	docker run --rm -v $$(PWD)/data:/app/data -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -e GOOGLE_CLOUD_PROJECT=project-9aed1f8e-f40e-4a15-858 food_on_the_fly:latest python -m food_on_the_fly.data.make_dataset
+
+docker_run_train:                                                                                                       
+	docker run --rm -v $$(PWD)/data:/app/data -v $$(PWD)/models:/app/models -v $$(PWD)/mlruns:/app/mlruns -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -e GOOGLE_CLOUD_PROJECT=project-9aed1f8e-f40e-4a15-858 food_on_the_fly:latest python -m food_on_the_fly.train_model
+
+docker_shell:                                                                                                                                    
+	docker run --rm -it -v $$(PWD)/data:/app/data -v $$(PWD)/models:/app/models -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json food_on_the_fly:latest /bin/bash
 
 docs:
 	mkdocs serve

@@ -28,5 +28,5 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 EXPOSE 8000
-
-ENTRYPOINT ["python", "-m", "food_on_the_fly.train_model"]
+EXPOSE 5001
+CMD ["python", "-m", "food_on_the_fly.train_model"]
