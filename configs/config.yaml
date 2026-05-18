@@ -34,7 +34,14 @@ features:
     lat_col1: Restaurant_latitude
     lon_col1: Restaurant_longitude
     lat_col2: Delivery_location_latitude
-    lon_col2: Delivery_location_longitude                                        
+    lon_col2: Delivery_location_longitude
+
+  weekday:
+    date_col: Order_Date
+    weekday_end: 4
+
+  rush_hour:
+    time_col: Time_Orderd
     
 
 training:

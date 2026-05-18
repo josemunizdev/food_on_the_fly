@@ -13,16 +13,16 @@ dev: install
 	pre-commit install
 
 data:
-	python -m food_on_the_fly.data.make_dataset
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.data.make_dataset
 
 train:
-	python -m food_on_the_fly.train_model
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model
 
 predict:
-	python -m food_on_the_fly.predict_model
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.predict_model
 
 test:
-	pytest tests/
+	PYTHONPATH=$$PWD/src pytest tests/
 
 lint:
 	ruff check .
