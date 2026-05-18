@@ -51,22 +51,26 @@ class HaversineTransformer(BaseEstimator, TransformerMixin):
 
 
 class WeekdayTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, date_col: str, weekday_end: int = 4):
+    def __init__(self, date_col: str, weekday_end: int = 4) -> None:
         self.date_col = date_col
         self.weekday_end = weekday_end
 
-    def fit(self, X, y=None):
+    def fit(self, X: pd.DataFrame, y: Any = None) -> WeekdayTransformer:
         if self.date_col not in X.columns:
             raise ValueError(f"WeekdayTransformer: missing column {self.date_col}")
         return self
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame) -> np.ndarray:
         # Changes the date column to 0-6 where 0 is Monday and 6 is Sunday,
         # then creates a binary feature for weekday vs weekend
         weekdays = pd.to_datetime(X[self.date_col], dayfirst=True).dt.weekday
-        return (weekdays < self.weekday_end).astype(int).values.reshape(-1, 1)
+        return np.asarray(
+            (weekdays < self.weekday_end).astype(int).values.reshape(-1, 1)
+        )
 
-    def get_feature_names_out(self, input_features=None):
+    def get_feature_names_out(
+        self, input_features: list[str] | None = None
+    ) -> np.ndarray:
         return np.array(["is_weekday"])
 
 
@@ -81,7 +85,7 @@ class RushHourTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, X: pd.DataFrame) -> np.ndarray:
         # Creates a binary feature for rush hour (7-9am and 5-7pm)
-        def parse_hour(val):
+        def parse_hour(val: Any) -> int:
             try:
                 if isinstance(val, str) and ":" in val:
                     return int(val.split(":")[0])
@@ -92,9 +96,11 @@ class RushHourTransformer(BaseEstimator, TransformerMixin):
 
         hours = X[self.time_col].apply(parse_hour)
         is_rush_hour = ((hours >= 11) & (hours <= 13)) | ((hours >= 18) & (hours <= 21))
-        return is_rush_hour.astype(int).values.reshape(-1, 1)
+        return np.asarray(is_rush_hour.astype(int).values.reshape(-1, 1))
 
-    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+    def get_feature_names_out(
+        self, input_features: list[str] | None = None
+    ) -> np.ndarray:
         return np.array(["is_rush_hour"])
 
 
