@@ -64,8 +64,8 @@ class WeekdayTransformer(BaseEstimator, TransformerMixin):
         # Changes the date column to 0-6 where 0 is Monday and 6 is Sunday,
         # then creates a binary feature for weekday vs weekend
         weekdays = pd.to_datetime(X[self.date_col], dayfirst=True).dt.weekday
-        return np.asarray(
-            (weekdays < self.weekday_end).astype(int).values.reshape(-1, 1)
+        return np.asarray((weekdays < self.weekday_end).astype(int).values).reshape(
+            -1, 1
         )
 
     def get_feature_names_out(
@@ -96,7 +96,7 @@ class RushHourTransformer(BaseEstimator, TransformerMixin):
 
         hours = X[self.time_col].apply(parse_hour)
         is_rush_hour = ((hours >= 11) & (hours <= 13)) | ((hours >= 18) & (hours <= 21))
-        return np.asarray(is_rush_hour.astype(int).values.reshape(-1, 1))
+        return np.asarray(is_rush_hour.astype(int).values).reshape(-1, 1)
 
     def get_feature_names_out(
         self, input_features: list[str] | None = None
