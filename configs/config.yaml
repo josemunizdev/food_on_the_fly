@@ -12,10 +12,10 @@ model:
     objective: 'reg:squarederror'            
     random_state: 42
 
-mlflow:                                                
-  tracking_uri: "file:./mlruns"               
-  experiment_name: "food_delivery_prediction" 
-  run_name: "xgboost_baseline"
+mlflow:
+  tracking_uri: "file:./mlruns"
+  experiment_name: "food_delivery_prediction"
+  run_name: "xgboost_n${model.parameters.n_estimators}_d${model.parameters.max_depth}_lr${model.parameters.learning_rate}"
 
 data:
   # Single source of truth for the raw dataset. Works locally (with

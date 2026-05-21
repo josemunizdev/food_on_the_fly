@@ -1,4 +1,4 @@
-.PHONY: install dev data train predict test lint format clean docker_build docker_run docs
+.PHONY: install dev data train train_sweep profile predict test lint format clean docker_build docker_run docs
 
 # Note: 'uv' is a faster alternative to pip. Install with: pip install uv
 # Then replace 'pip install' with 'uv pip install' in the commands below.
@@ -17,6 +17,12 @@ data:
 
 train:
 	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model
+
+train_sweep:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model -m --config-name sweep
+
+profile:
+	PYTHONPATH=$$PWD/src python scripts/profile_training.py
 
 predict:
 	PYTHONPATH=$$PWD/src python -m food_on_the_fly.predict_model

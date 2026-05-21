@@ -111,3 +111,42 @@ For what's next: hyperparameter tuning will be the focus and ensuring reproducib
 The thing we keep coming back to is that we don't have a clear definition of "good enough." The model hits 4.01-minute RMSE, but is that acceptable? Does the business care about being within 5 minutes? 10% relative error? That threshold changes everything about how much effort the tuning is worth and what tradeoffs make sense. The model complexity versus accuracy, customer expectations versus what's actually achievable given the data, how specific the driver scheduling needs to be.
 
 Beyond that, Docker needs to happen, CI/CD should include automated hyperparameter sweeps, and there should be some kind of monitoring dashboard watching for data drift on the holdout set. Right now this is an experimental prototype. Getting it to a place where it retrains automatically when performance drops and perhaps to do a shadow deployment are the goals, but there's real work between here and there.
+
+---
+
+## Phase 2 Submission: Operations & Tooling
+
+This section maps the Phase 2 rubric — containerization, monitoring/debugging, profiling, experiment tracking, and application logging — to the work in this repo.
+
+### Containerization (Docker) — Done
+
+- `dockerfiles/Dockerfile` is a multi-stage build (Python 3.13-slim base, builder stage installs deps into `/root/.local`, runtime stage copies them and the project source).
+- `docker-compose.yaml` orchestrates the training image with mounted volumes for `data/`, `models/`, and `mlruns/`, plus the gcloud credentials needed for the DVC-tracked GCS remote.
+- Makefile targets `docker_build`, `docker_run_data`, `docker_run_train`, and `docker_shell` cover the everyday lifecycle.
+
+### Monitoring & Debugging — Done
+
+- `src/food_on_the_fly/utils/monitoring.py` defines `SystemMetricsLogger`, a context manager that samples `psutil` CPU%, memory%, and process RSS every 2 seconds in a daemon thread and logs them as MLflow metrics (`sys_cpu_percent`, `sys_mem_percent`, `sys_proc_rss_mb`).
+- `train_model.py` wraps `pipeline.fit` with this context manager and also logs `train_duration_seconds`, so each run has both a wall-clock cost and a resource-usage curve visible in the MLflow UI.
+- The sampler is fully defensive — missing psutil or MLflow degrades to a no-op log warning rather than failing training.
+
+### Profiling — Done
+
+- `scripts/profile_training.py` runs the training entrypoint under `cProfile`, dumps a binary `.prof` (viewable in `snakeviz` or `pstats`) and a text top-50 cumulative report to `reports/profiling/`.
+- Exposed as `make profile`. Output paths are deterministic so the artifacts can be diffed across runs.
+
+### Experiment Management & Tracking — Done
+
+- MLflow tracking has been in place since Phase 1 (`mlruns/` is the local tracking store).
+- New: `configs/sweep.yaml` defines a Hydra multirun sweep over `n_estimators × max_depth × learning_rate` (18 combinations), and `mlflow.run_name` is now a parameterized template (`xgboost_n{n_estimators}_d{max_depth}_lr{learning_rate}`) so each sweep cell shows up as its own labelled MLflow run.
+- Triggered by `make train_sweep`, which expands to `python -m food_on_the_fly.train_model -m --config-name sweep`. Results compare side-by-side in the MLflow UI's Compare view.
+
+### Application & Experiment Logging — Done
+
+- `src/food_on_the_fly/logging_config.py` now uses `rich.logging.RichHandler` for colorized console output and richer tracebacks, with a fallback to the plain stdlib `StreamHandler` if `rich` is not installed.
+- `get_logger(__name__)` is used consistently across `train_model.py`, `make_dataset.py`, the feature module, the analysis module, and the new monitoring module — module-named loggers make filtering and grep-based debugging straightforward.
+
+### What's Carried Forward
+
+- Two new custom transformers (`WeekdayTransformer`, `RushHourTransformer`) joined the existing `HaversineTransformer` in `features/build_features.py`. Feature-importance analysis (`src/food_on_the_fly/analysis/feature_importance.py`, top-20 plot in `reports/figures/feature_importance_top20.png`) shows `is_rush_hour` lands at rank 14 and `is_weekday` at the bottom — useful as a baseline observation, with day-of-week and hour-of-day expansions identified as the next iteration.
+- The feature-importance utility loads either an MLflow run ID or a joblib path and writes both the CSV (`reports/feature_importances.csv`) and a top-N bar chart.
