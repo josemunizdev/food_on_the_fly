@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytest
 
 try:
     from food_on_the_fly.config import PROJECT_ROOT
@@ -45,12 +46,13 @@ def df():
 
 
 class TestNoNegativeDeliveryTimes:
-
     def test_no_negative_values(self, df):
         col = "Time_taken (min)"
         times = pd.to_numeric(df[col], errors="coerce")
         negatives = df[times < 0]
-        assert len(negatives) == 0, f"{len(negatives)} rows have negative delivery times"
+        assert len(negatives) == 0, (
+            f"{len(negatives)} rows have negative delivery times"
+        )
 
     def test_no_zero_values(self, df):
         col = "Time_taken (min)"
@@ -71,7 +73,6 @@ class TestNoNegativeDeliveryTimes:
 
 
 class TestLatLonBoundsMatchCityCoordinates:
-
     def _nonzero(self, series):
         vals = pd.to_numeric(series, errors="coerce").dropna()
         return vals[vals != 0.0]
@@ -80,40 +81,34 @@ class TestLatLonBoundsMatchCityCoordinates:
         lats = self._nonzero(df["Restaurant_latitude"])
         bad = lats[(lats < INDIA_BOUNDS["lat_min"]) | (lats > INDIA_BOUNDS["lat_max"])]
         pct = len(bad) / len(lats) * 100
-        assert pct < 2, (
-            f"{len(bad)} restaurant lats ({pct:.1f}%) outside India bounds"
-        )
+        assert pct < 2, f"{len(bad)} restaurant lats ({pct:.1f}%) outside India bounds"
 
     def test_restaurant_longitude_in_bounds(self, df):
         lons = self._nonzero(df["Restaurant_longitude"])
         bad = lons[(lons < INDIA_BOUNDS["lon_min"]) | (lons > INDIA_BOUNDS["lon_max"])]
         pct = len(bad) / len(lons) * 100
-        assert pct < 2, (
-            f"{len(bad)} restaurant lons ({pct:.1f}%) outside India bounds"
-        )
+        assert pct < 2, f"{len(bad)} restaurant lons ({pct:.1f}%) outside India bounds"
 
     def test_delivery_latitude_in_bounds(self, df):
         lats = self._nonzero(df["Delivery_location_latitude"])
         bad = lats[(lats < INDIA_BOUNDS["lat_min"]) | (lats > INDIA_BOUNDS["lat_max"])]
         pct = len(bad) / len(lats) * 100
-        assert pct < 15, (
-            f"{len(bad)} delivery lats ({pct:.1f}%) outside India bounds"
-        )
+        assert pct < 15, f"{len(bad)} delivery lats ({pct:.1f}%) outside India bounds"
 
     def test_delivery_longitude_in_bounds(self, df):
         lons = self._nonzero(df["Delivery_location_longitude"])
         bad = lons[(lons < INDIA_BOUNDS["lon_min"]) | (lons > INDIA_BOUNDS["lon_max"])]
         pct = len(bad) / len(lons) * 100
-        assert pct < 15, (
-            f"{len(bad)} delivery lons ({pct:.1f}%) outside India bounds"
-        )
+        assert pct < 15, f"{len(bad)} delivery lons ({pct:.1f}%) outside India bounds"
 
     def test_zero_coordinate_percentage(self, df):
         for col in COORD_COLS:
             if col in df.columns:
                 zeros = (df[col] == 0.0).sum()
                 pct = zeros / len(df) * 100
-                assert pct < 15, f"{col}: {zeros} rows ({pct:.1f}%) are zero placeholders"
+                assert pct < 15, (
+                    f"{col}: {zeros} rows ({pct:.1f}%) are zero placeholders"
+                )
 
     def test_no_null_coordinates(self, df):
         for col in COORD_COLS:
@@ -134,8 +129,7 @@ class TestLatLonBoundsMatchCityCoordinates:
 
     def test_restaurant_delivery_not_same_location(self, df):
         non_zero = df[
-            (df["Restaurant_latitude"] != 0.0)
-            & (df["Restaurant_longitude"] != 0.0)
+            (df["Restaurant_latitude"] != 0.0) & (df["Restaurant_longitude"] != 0.0)
         ]
         same = non_zero[
             (non_zero["Delivery_location_latitude"] == 0.0)
