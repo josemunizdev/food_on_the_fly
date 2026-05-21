@@ -1,15 +1,30 @@
 version: '3.8'
 
 services:
-  food_on_the_fly:
+  app:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile
     container_name: food_on_the_fly_app
+
     volumes:
-      - ./data:/app/data
-      - ./models:/app/models
+      -  ./data:/app/data
+      -  ./models:/app/models
+      -  ./mlruns:/app/mlruns
+      -  ~/.config/gcloud:/root/.config/gcloud:ro
+    
     environment:
       - PYTHONUNBUFFERED=1
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - GOOGLE_CLOUD_PROJECT=project-9aed1f8e-f40e-4a15-858-models
+    
     ports:
-      - "8000:8000"
+      -  "8000:8000"
+      -  "5001:5001"
+
+    networks:
+      -  food_network
+
+networks:
+  food_network:
+    driver: bridge
