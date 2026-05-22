@@ -42,7 +42,7 @@ features:
 
   rush_hour:
     time_col: Time_Orderd
-    
+
 
 training:
   epochs: 100
