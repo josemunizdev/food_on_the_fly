@@ -1,0 +1,20 @@
+# Hydra multirun sweep over XGBoost hyperparameters.
+# Run with:
+#   PYTHONPATH=$PWD/src python -m food_on_the_fly.train_model -m \
+#       --config-name sweep
+#
+# Each combination is logged as its own MLflow run inside the
+# `food_delivery_prediction` experiment, so they can be compared in
+# the MLflow UI (Compare button) or via `mlflow runs search`.
+
+defaults:
+  - config
+  - _self_
+
+hydra:
+  mode: MULTIRUN
+  sweeper:
+    params:
+      model.parameters.n_estimators: 100,200,400
+      model.parameters.max_depth: 4,6,8
+      model.parameters.learning_rate: 0.05,0.1

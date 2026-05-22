@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +18,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from food_on_the_fly.data.loaders import load_processed
-from food_on_the_fly.features.build_features import create_haversine_transformer
+from food_on_the_fly.features.build_features import (
+    create_haversine_transformer,
+    create_rush_hour_transformer,
+    create_weekday_transformer,
+)
 from food_on_the_fly.logging_config import get_logger, setup_logging
+from food_on_the_fly.utils.monitoring import SystemMetricsLogger
 from food_on_the_fly.utils.seed import set_seed
 
 logger = get_logger(__name__)
@@ -115,11 +121,14 @@ def main(cfg: DictConfig) -> None:
 
         # Create HaversineTransformer from config
         haversine_transformer = create_haversine_transformer(cfg)
-
+        weekday_transformer = create_weekday_transformer(cfg)
+        rush_hour_transformer = create_rush_hour_transformer(cfg)
         # Build column transformer
         preprocessor = ColumnTransformer(
             transformers=[
                 ("distance", haversine_transformer, location_features),
+                ("weekday", weekday_transformer, ["Order_Date"]),
+                ("rush_hour", rush_hour_transformer, ["Time_Orderd"]),
                 ("numeric", StandardScaler(), numeric_features),
                 (
                     "categorical",
@@ -138,10 +147,14 @@ def main(cfg: DictConfig) -> None:
             ]
         )
 
-        # Train the model
+        # Train the model with system-metrics monitoring
         logger.info("Training XGBoost model...")
-        pipeline.fit(X_train, y_train)
-        logger.info("Training complete!")
+        train_start = time.perf_counter()
+        with SystemMetricsLogger(interval_seconds=2.0):
+            pipeline.fit(X_train, y_train)
+        train_duration = time.perf_counter() - train_start
+        mlflow.log_metric("train_duration_seconds", train_duration)
+        logger.info("Training complete in %.2fs", train_duration)
 
         # Make predictions
         logger.info("Making predictions...")

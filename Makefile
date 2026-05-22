@@ -1,4 +1,4 @@
-.PHONY: install dev data train predict test lint format clean docker_build docker_run docs
+.PHONY: install dev data train train_sweep profile predict test lint format clean docker_build docker_run docs
 
 # Note: 'uv' is a faster alternative to pip. Install with: pip install uv
 # Then replace 'pip install' with 'uv pip install' in the commands below.
@@ -13,16 +13,22 @@ dev: install
 	pre-commit install
 
 data:
-	python -m food_on_the_fly.data.make_dataset
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.data.make_dataset
 
 train:
-	python -m food_on_the_fly.train_model
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model
+
+train_sweep:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model -m --config-name sweep
+
+profile:
+	PYTHONPATH=$$PWD/src python scripts/profile_training.py
 
 predict:
-	python -m food_on_the_fly.predict_model
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.predict_model
 
 test:
-	pytest tests/
+	PYTHONPATH=$$PWD/src pytest tests/
 
 lint:
 	ruff check .
@@ -44,8 +50,14 @@ clean:
 docker_build:
 	docker build -t food_on_the_fly -f dockerfiles/Dockerfile .
 
-docker_run:
-	docker run --rm food_on_the_fly
+docker_run_data:                                                                                                        
+	docker run --rm -v $$(PWD)/data:/app/data -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -e GOOGLE_CLOUD_PROJECT=project-9aed1f8e-f40e-4a15-858 food_on_the_fly:latest python -m food_on_the_fly.data.make_dataset
+
+docker_run_train:                                                                                                       
+	docker run --rm -v $$(PWD)/data:/app/data -v $$(PWD)/models:/app/models -v $$(PWD)/mlruns:/app/mlruns -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json -e GOOGLE_CLOUD_PROJECT=project-9aed1f8e-f40e-4a15-858 food_on_the_fly:latest python -m food_on_the_fly.train_model
+
+docker_shell:                                                                                                                                    
+	docker run --rm -it -v $$(PWD)/data:/app/data -v $$(PWD)/models:/app/models -v ~/.config/gcloud:/root/.config/gcloud:ro -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json food_on_the_fly:latest /bin/bash
 
 docs:
 	mkdocs serve
