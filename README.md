@@ -5,7 +5,7 @@ A food delivery prediction AI for estimated delivery times
 ## Team Information
 
 - **Project Lead:** YesChef (jose.muniz@depaul.edu)
-- **Team Members:** 
+- **Team Members:**
     Abdul
     Aviv
     Imran
@@ -243,7 +243,9 @@ make clean
 
 # Docker operations
 make docker_build
-make docker_run
+make docker_run_data
+make docker_run_train
+
 
 # Serve documentation locally
 make docs

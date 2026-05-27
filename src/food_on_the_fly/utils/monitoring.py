@@ -32,14 +32,25 @@ class SystemMetricsLogger(AbstractContextManager["SystemMetricsLogger"]):
         self._step = 0
         self._psutil: Any = None
         self._proc: Any = None
+        self._run_id: str | None = None
 
     def __enter__(self) -> SystemMetricsLogger:
         try:
+            import mlflow
             import psutil
 
             self._psutil = psutil
             self._proc = psutil.Process(os.getpid())
             self._proc.cpu_percent(interval=None)  # prime the counter
+
+            active_run = mlflow.active_run()  # get current training run
+            if active_run:
+                self._run_id = active_run.info.run_id
+            else:
+                logger.warning(
+                    "No active MLflow run; system metrics will not be logged"
+                )
+                return self
         except ImportError:
             logger.warning("psutil not installed; skipping system metrics logging")
             return self
@@ -61,15 +72,22 @@ class SystemMetricsLogger(AbstractContextManager["SystemMetricsLogger"]):
             import mlflow
         except ImportError:
             return
-
+        if not self._run_id:
+            return
         while not self._stop.wait(self.interval_seconds):
             try:
                 cpu = self._psutil.cpu_percent(interval=None)
                 vm = self._psutil.virtual_memory()
                 rss_mb = self._proc.memory_info().rss / (1024 * 1024)
-                mlflow.log_metric("sys_cpu_percent", cpu, step=self._step)
-                mlflow.log_metric("sys_mem_percent", vm.percent, step=self._step)
-                mlflow.log_metric("sys_proc_rss_mb", rss_mb, step=self._step)
+
+                client = mlflow.MlflowClient()
+                client.log_metric(self._run_id, "sys_cpu_percent", cpu, step=self._step)
+                client.log_metric(
+                    self._run_id, "sys_mem_percent", vm.percent, step=self._step
+                )
+                client.log_metric(
+                    self._run_id, "sys_proc_rss_mb", rss_mb, step=self._step
+                )
                 self._step += 1
             except Exception as e:  # noqa: BLE001 — monitoring must never crash training
                 logger.debug("System metrics sample failed: %s", e)
