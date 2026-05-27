@@ -19,6 +19,12 @@ data:
   train_test_split: 0.8
   random_state: 42
   val_split: 0.1
+  # Temporal split configuration, this is only to mimic real-world data drift/eval
+  temporal_baseline_days: 40      # First 40 days for train/val/test
+  temporal_window_days: 7         # Weekly windows for drift detection
+  temporal_train_ratio: 0.7       # 70% of baseline for training
+  temporal_val_ratio: 0.15        # 15% of baseline for validation
+  temporal_test_ratio: 0.15       # 15% of baseline for testing
 
 features:
   haversine:
