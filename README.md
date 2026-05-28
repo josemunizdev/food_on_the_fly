@@ -375,6 +375,22 @@ make docker_run_train
 make docs
 ```
 
+ ## Team Contributions
+
+  - [ ] **Abdul** - [Add contributions]
+  - [x] **Aviv** - Temporal data split, profiling,
+  debugging docs
+  - [x] **Jose** - Project lead, infrastructure
+  - [ ] **Imran** - [Add contributions]
+
+### Detailed Table
+  | Team Member | Phase 1 | Phase 2 |
+  |-------------|---------|---------|
+  | Aviv | Hydra, MLflow, Docker | Temporal features, Data split,profiling,docs |
+  | Jose | TBD | TBD |
+  | Abdul | TBD | TBD |
+  | Imran | TBD | TBD |
+
 ## Contribution Summary
 
 - [ ] Team members have been assigned
