@@ -3,5 +3,5 @@ pytest-cov>=5.0
 ruff>=0.6.0
 mypy>=1.11
 pre-commit>=3.8
-types-seaborn>=0.13.0scalene>=1.5.0
+types-seaborn>=0.13.0
 scalene>=1.5.0
