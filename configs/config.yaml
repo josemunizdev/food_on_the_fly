@@ -1,21 +1,12 @@
 # Hydra configuration for Food on the Fly
 defaults:
+  - model: xgboost_baseline
   - _self_
-
-model:
-  name: xgboost_delivery_predictor                     
-  type: xgboost                                        
-  parameters:                                          
-    n_estimators: 100                               
-    max_depth: 6                            
-    learning_rate: 0.1                       
-    objective: 'reg:squarederror'            
-    random_state: 42
 
 mlflow:
   tracking_uri: "file:./mlruns"
   experiment_name: "food_delivery_prediction"
-  run_name: "xgboost_n${model.parameters.n_estimators}_d${model.parameters.max_depth}_lr${model.parameters.learning_rate}"
+  run_name: "xgboost_${model.name}_${model.parameters.n_estimators}_d${model.parameters.max_depth}_lr${model.parameters.learning_rate}"
 
 data:
   # Single source of truth for the raw dataset. Works locally (with
@@ -28,8 +19,14 @@ data:
   train_test_split: 0.8
   random_state: 42
   val_split: 0.1
+  # Temporal split configuration, this is only to mimic real-world data drift/eval
+  temporal_baseline_days: 40      # First 40 days for train/val/test
+  temporal_window_days: 7         # Weekly windows for drift detection
+  temporal_train_ratio: 0.7       # 70% of baseline for training
+  temporal_val_ratio: 0.15        # 15% of baseline for validation
+  temporal_test_ratio: 0.15       # 15% of baseline for testing
 
-features:                                              
+features:
   haversine:
     lat_col1: Restaurant_latitude
     lon_col1: Restaurant_longitude
@@ -68,5 +65,3 @@ paths:
   models_dir: models
   logs_dir: logs
   predictions_dir: predictions
-
-

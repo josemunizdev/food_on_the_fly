@@ -51,6 +51,8 @@ def main(cfg: DictConfig) -> None:
     mlflow.set_experiment(cfg.mlflow.experiment_name)
 
     with mlflow.start_run(run_name=cfg.mlflow.run_name):
+        # Enable system metrics logging
+        mlflow.enable_system_metrics_logging()
         # Log config parameters to MLflow (with type safety)
         params = OmegaConf.to_container(cfg, resolve=True)
         if isinstance(params, dict):
@@ -150,7 +152,7 @@ def main(cfg: DictConfig) -> None:
         # Train the model with system-metrics monitoring
         logger.info("Training XGBoost model...")
         train_start = time.perf_counter()
-        with SystemMetricsLogger(interval_seconds=2.0):
+        with SystemMetricsLogger(interval_seconds=0.1):
             pipeline.fit(X_train, y_train)
         train_duration = time.perf_counter() - train_start
         mlflow.log_metric("train_duration_seconds", train_duration)

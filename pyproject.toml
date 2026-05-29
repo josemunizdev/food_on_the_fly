@@ -9,7 +9,7 @@ description = "A food delivery prediction AI for estimated delivery times"
 authors = [
     {name = "YesChef", email = "jose.muniz@depaul.edu"}
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
 dependencies = [
     "numpy>=1.26.0",
@@ -48,7 +48,7 @@ select = ["E", "F", "I", "N", "W", "B", "UP"]
 ignore = ["N803", "N806", ]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.11"
 warn_return_any = true
 disallow_untyped_defs = true
 
