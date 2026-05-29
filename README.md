@@ -69,6 +69,130 @@ flowchart TD
 ### Phase 3: CI/CD & Deployment
 - See [PHASE3.md](PHASE3.md) for detailed checklist
 
+## Phase 2: Docker, Monitoring, Profiling & Debugging
+
+### 🐳 Docker Usage
+
+**Build the image:**
+```bash
+docker build -t food-on-the-fly:phase2 -f dockerfiles/Dockerfile .
+```
+
+**Run training in container:**
+```bash
+docker run \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/mlruns:/app/mlruns \
+  -v $(pwd)/logs:/app/logs \
+  food-on-the-fly:phase2
+```
+
+**Run with custom model configuration:**
+```bash
+docker run -e HYDRA_ARGS="model=xgboost_optimized" food-on-the-fly:phase2
+```
+
+**Run with custom data split:**
+```bash
+docker run -e HYDRA_ARGS="data.temporal_baseline_days=50" food-on-the-fly:phase2
+```
+
+### 📊 Monitoring & Experiment Tracking
+
+**Start MLflow UI:**
+```bash
+make mlflow
+# Opens at http://localhost:5010
+```
+
+**What's tracked automatically:**
+- Training/validation metrics (RMSE, MAE, R²)
+- All hyperparameters (from Hydra config)
+- System metrics (CPU, memory, GPU if available)
+- Model artifacts (pipeline.joblib)
+- Training duration
+
+**Compare experiments:**
+```bash
+# Train multiple models
+make train_all
+
+# View in MLflow UI
+make mlflow
+# Navigate to "Experiments" → "food_delivery_prediction"
+# Click "Compare" to see side-by-side metrics
+```
+
+### ⚡ Profiling
+
+**CPU profiling with cProfile:**
+```bash
+python scripts/profile_training.py
+
+# Interactive visualization:
+pip install snakeviz
+snakeviz reports/profiling/train_model.prof
+```
+
+**Memory + CPU profiling with Scalene (sklearn/XGBoost optimized):**
+```bash
+python scripts/profile_scalene.py
+open reports/profiling/scalene_report.html
+```
+
+**Profiling results:** See [docs/profiling/OPTIMIZATIONS.md](docs/profiling/OPTIMIZATIONS.md)
+
+### 🐛 Debugging
+
+**Interactive debugging with pdb/ipdb:**
+```bash
+# Install ipdb
+pip install ipdb
+
+# Add breakpoint in code:
+# import ipdb; ipdb.set_trace()
+
+# Run training
+make train
+```
+
+**Debugging guide:** See [docs/debugging/README.md](docs/debugging/README.md) for:
+- pdb/ipdb command reference
+- Common debugging scenarios (NaN loss, identical predictions)
+- Docker debugging methods
+- Best practices
+
+### 📝 Logging
+
+Logs are written to **both console and file**:
+
+**Console** (colorized via RichHandler):
+- Real-time training progress
+- Errors with rich tracebacks
+
+**File** (`logs/food_on_the_fly.log`):
+- Persistent logs (rotated at 10MB, 5 backups)
+- Full history for debugging
+
+**View logs:**
+```bash
+# Tail live logs
+tail -f logs/food_on_the_fly.log
+
+# Search logs
+grep "ERROR" logs/food_on_the_fly.log
+
+# View specific run
+grep "xgboost_optimized" logs/food_on_the_fly.log
+```
+
+**Log levels:**
+- `DEBUG`: Detailed diagnostic info
+- `INFO`: General informational messages (default)
+- `WARNING`: Warning messages
+- `ERROR`: Error messages
+
+
 ## Setup Instructions
 
 ### Prerequisites
@@ -252,6 +376,22 @@ make docker_run_train
 # Serve documentation locally
 make docs
 ```
+
+ ## Team Contributions
+
+  - [ ] **Abdul** - [Add contributions]
+  - [x] **Aviv** - Temporal data split, profiling,
+  debugging docs
+  - [x] **Jose** - Project lead, infrastructure
+  - [ ] **Imran** - [Add contributions]
+
+### Detailed Table
+  | Team Member | Phase 1 | Phase 2 |
+  |-------------|---------|---------|
+  | Aviv | Hydra, MLflow, Docker | Temporal features, Data split,profiling,docs |
+  | Jose | TBD | TBD |
+  | Abdul | TBD | TBD |
+  | Imran | TBD | TBD |
 
 ## Contribution Summary
 
