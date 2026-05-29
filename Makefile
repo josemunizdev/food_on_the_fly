@@ -1,4 +1,4 @@
-.PHONY: install dev data train train_baseline train_fast train_optimized train_all train_sweep profile predict test lint format clean docker_build docker_run docs
+.PHONY: install dev data train train_baseline train_fast train_optimized train_all train_sweep profile predict test lint format clean docker_build docker_run docs evaluate evaluate_latest evaluate_best evaluate_best_r2
 
 # Note: 'uv' is a faster alternative to pip. Install with: pip install uv
 # Then replace 'pip install' with 'uv pip install' in the commands below.
@@ -32,6 +32,18 @@ train_optimized:
 
 train_sweep:
 	PYTHONPATH=$$PWD/src python -m food_on_the_fly.train_model -m --config-name sweep
+
+evaluate:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.evaluate_model
+
+evaluate_latest:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.evaluate_model evaluation.selection_mode=latest
+
+evaluate_best:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.evaluate_model evaluation.selection_mode=best evaluation.best_metric=val_rmse
+
+evaluate_best_r2:
+	PYTHONPATH=$$PWD/src python -m food_on_the_fly.evaluate_model evaluation.selection_mode=best evaluation.best_metric=val_r2 evaluation.best_metric_order=max
 
 profile:
 	PYTHONPATH=$$PWD/src python scripts/profile_training.py
