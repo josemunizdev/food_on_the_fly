@@ -42,6 +42,12 @@ def main(cfg: DictConfig) -> None:
     # Load model based on selection mode
     client = mlflow.tracking.MlflowClient()
     experiment = client.get_experiment_by_name(cfg.mlflow.experiment_name)
+    if experiment is None:
+        logger.error(
+            f"Experiment '{cfg.mlflow.experiment_name}' not found! "
+            "Train a model first to create the experiment."
+        )
+        return
     selection_mode = cfg.evaluation.selection_mode
     logger.info(f"Model selection mode: {selection_mode}")
 
