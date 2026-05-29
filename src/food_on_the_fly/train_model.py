@@ -198,7 +198,16 @@ def main(cfg: DictConfig) -> None:
         logger.info("=" * 80)
 
         # Log model to MLflow
-        mlflow.sklearn.log_model(pipeline, "model")
+        mlflow.sklearn.log_model(
+            pipeline,
+            name="model",
+            pip_requirements=[
+                "scikit-learn",
+                "xgboost",
+                "pandas",
+                "numpy",
+            ],
+        )
         logger.info("Model logged to MLflow")
 
         logger.info("Training complete! 🎉")
