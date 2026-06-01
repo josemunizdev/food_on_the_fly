@@ -50,9 +50,9 @@ class TestNoNegativeDeliveryTimes:
         col = "Time_taken (min)"
         times = pd.to_numeric(df[col], errors="coerce")
         negatives = df[times < 0]
-        assert (
-            len(negatives) == 0
-        ), f"{len(negatives)} rows have negative delivery times"
+        assert len(negatives) == 0, (
+            f"{len(negatives)} rows have negative delivery times"
+        )
 
     def test_no_zero_values(self, df: pd.DataFrame) -> None:
         col = "Time_taken (min)"
@@ -106,9 +106,9 @@ class TestLatLonBoundsMatchCityCoordinates:
             if col in df.columns:
                 zeros = (df[col] == 0.0).sum()
                 pct = zeros / len(df) * 100
-                assert (
-                    pct < 15
-                ), f"{col}: {zeros} rows ({pct:.1f}%) are zero placeholders"
+                assert pct < 15, (
+                    f"{col}: {zeros} rows ({pct:.1f}%) are zero placeholders"
+                )
 
     def test_no_null_coordinates(self, df: pd.DataFrame) -> None:
         for col in COORD_COLS:
