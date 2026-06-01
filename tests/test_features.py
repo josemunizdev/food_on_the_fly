@@ -15,7 +15,7 @@ EARTH_RADIUS_KM = 6371
 
 class TestHaversineTransformer:
     @pytest.fixture()
-    def transformer(self):
+    def transformer(self) -> HaversineTransformer:
         return HaversineTransformer(
             lat_col1="Restaurant_latitude",
             lon_col1="Restaurant_longitude",
@@ -24,7 +24,7 @@ class TestHaversineTransformer:
         )
 
     @pytest.fixture()
-    def sample_df(self):
+    def sample_df(self) -> pd.DataFrame:
         return pd.DataFrame(
             {
                 "Restaurant_latitude": [28.6139, 19.0760, 12.9716],
@@ -34,7 +34,9 @@ class TestHaversineTransformer:
             }
         )
 
-    def test_known_distance_delhi_to_mumbai(self, transformer):
+    def test_known_distance_delhi_to_mumbai(
+        self, transformer: HaversineTransformer
+    ) -> None:
         df = pd.DataFrame(
             {
                 "Restaurant_latitude": [28.6139],
@@ -48,7 +50,7 @@ class TestHaversineTransformer:
         assert result.shape == (1, 1)
         assert 1140 < result[0, 0] < 1160
 
-    def test_same_point_returns_zero(self, transformer):
+    def test_same_point_returns_zero(self, transformer: HaversineTransformer) -> None:
         df = pd.DataFrame(
             {
                 "Restaurant_latitude": [28.6139],
@@ -61,17 +63,21 @@ class TestHaversineTransformer:
         result = transformer.transform(df)
         assert result[0, 0] == pytest.approx(0.0, abs=1e-6)
 
-    def test_output_shape(self, transformer, sample_df):
+    def test_output_shape(
+        self, transformer: HaversineTransformer, sample_df: pd.DataFrame
+    ) -> None:
         transformer.fit(sample_df)
         result = transformer.transform(sample_df)
         assert result.shape == (len(sample_df), 1)
 
-    def test_no_negative_distances(self, transformer, sample_df):
+    def test_no_negative_distances(
+        self, transformer: HaversineTransformer, sample_df: pd.DataFrame
+    ) -> None:
         transformer.fit(sample_df)
         result = transformer.transform(sample_df)
         assert np.all(result >= 0)
 
-    def test_symmetry(self):
+    def test_symmetry(self) -> None:
         t_forward = HaversineTransformer("a_lat", "a_lon", "b_lat", "b_lon")
         t_reverse = HaversineTransformer("b_lat", "b_lon", "a_lat", "a_lon")
         df = pd.DataFrame(
@@ -88,16 +94,16 @@ class TestHaversineTransformer:
         d2 = t_reverse.transform(df)[0, 0]
         assert d1 == pytest.approx(d2, rel=1e-6)
 
-    def test_missing_column_raises(self, transformer):
+    def test_missing_column_raises(self, transformer: HaversineTransformer) -> None:
         bad_df = pd.DataFrame({"Restaurant_latitude": [1.0]})
         with pytest.raises(ValueError, match="missing columns"):
             transformer.fit(bad_df)
 
-    def test_feature_names_out(self, transformer):
+    def test_feature_names_out(self, transformer: HaversineTransformer) -> None:
         names = transformer.get_feature_names_out()
         assert list(names) == ["distance_km"]
 
-    def test_short_delivery_distance(self, transformer):
+    def test_short_delivery_distance(self, transformer: HaversineTransformer) -> None:
         df = pd.DataFrame(
             {
                 "Restaurant_latitude": [12.9716],
@@ -113,34 +119,34 @@ class TestHaversineTransformer:
 
 class TestWeekdayTransformer:
     @pytest.fixture()
-    def transformer(self):
+    def transformer(self) -> WeekdayTransformer:
         return WeekdayTransformer(date_col="Order_Date")
 
-    def test_monday_is_weekday(self, transformer):
+    def test_monday_is_weekday(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["13-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 1
 
-    def test_saturday_is_weekend(self, transformer):
+    def test_saturday_is_weekend(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["18-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 0
 
-    def test_sunday_is_weekend(self, transformer):
+    def test_sunday_is_weekend(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["19-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 0
 
-    def test_output_shape(self, transformer):
+    def test_output_shape(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["13-01-2025", "14-01-2025", "18-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result.shape == (3, 1)
 
-    def test_output_is_binary(self, transformer):
+    def test_output_is_binary(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame(
             {
                 "Order_Date": [
@@ -156,62 +162,62 @@ class TestWeekdayTransformer:
         result = transformer.transform(df)
         assert set(result.flatten()).issubset({0, 1})
 
-    def test_missing_column_raises(self, transformer):
+    def test_missing_column_raises(self, transformer: WeekdayTransformer) -> None:
         bad_df = pd.DataFrame({"wrong_col": ["13-01-2025"]})
         with pytest.raises(ValueError, match="missing column"):
             transformer.fit(bad_df)
 
-    def test_feature_names_out(self, transformer):
+    def test_feature_names_out(self, transformer: WeekdayTransformer) -> None:
         names = transformer.get_feature_names_out()
         assert list(names) == ["is_weekday"]
 
 
 class TestRushHourTransformer:
     @pytest.fixture()
-    def transformer(self):
+    def transformer(self) -> RushHourTransformer:
         return RushHourTransformer(time_col="Time_Orderd")
 
-    def test_lunch_rush_is_rush(self, transformer):
+    def test_lunch_rush_is_rush(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["12:30"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 1
 
-    def test_dinner_rush_is_rush(self, transformer):
+    def test_dinner_rush_is_rush(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["19:00"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 1
 
-    def test_early_morning_not_rush(self, transformer):
+    def test_early_morning_not_rush(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["6:00"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 0
 
-    def test_mid_afternoon_not_rush(self, transformer):
+    def test_mid_afternoon_not_rush(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["15:00"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result[0, 0] == 0
 
-    def test_output_shape(self, transformer):
+    def test_output_shape(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["8:00", "12:00", "15:00", "19:00"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert result.shape == (4, 1)
 
-    def test_output_is_binary(self, transformer):
+    def test_output_is_binary(self, transformer: RushHourTransformer) -> None:
         df = pd.DataFrame({"Time_Orderd": ["6:00", "12:00", "15:00", "19:00", "23:00"]})
         transformer.fit(df)
         result = transformer.transform(df)
         assert set(result.flatten()).issubset({0, 1})
 
-    def test_missing_column_raises(self, transformer):
+    def test_missing_column_raises(self, transformer: RushHourTransformer) -> None:
         bad_df = pd.DataFrame({"wrong_col": ["12:00"]})
         with pytest.raises(ValueError, match="missing column"):
             transformer.fit(bad_df)
 
-    def test_feature_names_out(self, transformer):
+    def test_feature_names_out(self, transformer: RushHourTransformer) -> None:
         names = transformer.get_feature_names_out()
         assert list(names) == ["is_rush_hour"]
