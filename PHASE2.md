@@ -1,6 +1,7 @@
 # PHASE 2: Enhancing ML Operations with Containerization & Monitoring
 
 ## Overview
+
 Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing containerization, advanced monitoring, profiling, experiment tracking, and comprehensive logging. This phase ensures your model can be reliably deployed, monitored in production, and continuously improved through systematic experimentation.
 
 ---
@@ -8,81 +9,107 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 ## 1. Containerization
 
 - [x] **Dockerfile Creation**: Build Dockerfile for model training and inference
-    - Evidence: `dockerfiles/Dockerfile` (commit a001e31)
+  - Evidence: `dockerfiles/Dockerfile` (commit a001e31)
 - [x] **Base Image Selection**: Choose appropriate base image (python:3.x, nvidia/cuda, etc.)
-    - Evidence: `dockerfiles/Dockerfile` lines 5, 13
+  - Evidence: `dockerfiles/Dockerfile` lines 5, 13
 - [x] **Environment Variables**: Define and document required environment variables
-    - Evidence: `dockerfiles/Dockerfile` lines 22-23
+  - Evidence: `dockerfiles/Dockerfile` lines 22-23
 - [x] **Build Instructions**: Document how to build Docker image with examples
-    - Evidence: `README.md` lines near 72
+  - Evidence: `README.md` lines near 72
 - [x] **Run Instructions**: Document how to run container with proper volume/network config
-    - Evidence: `README.md` lines near 80
+  - Evidence: `README.md` lines near 80
 - [x] **Container Testing**: Test container locally to ensure consistency with host environment
-    - Evidence: MLflow run comparison (run_id: abc123 vs def456)
+  - Evidence: MLflow run comparison (run_id: abc123 vs def456)
 - [ ] **Docker Compose (Optional)**: Create docker-compose.yml for multi-service setups
 - [x] **Environment Consistency**: Verify that containerized training produces identical results to local training
-    - Evidence: Random seed set, identical RMSE in container vs local
+  - Evidence: Random seed set, identical RMSE in container vs local
 
 ---
 
 ## 2. Monitoring & Debugging
 
 - [x] **Debugging Tools**: Set up pdb/ipdb for interactive debugging
-    - Evidence: `docs/debugging/README.md`
+  - Evidence: `docs/debugging/README.md`
 - [x] **Debugging Documentation**: Document how to debug in containerized environment
-    - Evidence: `docs/debugging/README.md`
+  - Evidence: `docs/debugging/README.md`
 - [x] **Debug Scenario 1**: Create example scenario and solution document for [specific problem]
-     - Evidence: `docs/debugging/README.md` Scenario 1
+  - Evidence: `docs/debugging/README.md` Scenario 1
 - [x] **Debug Scenario 2**: Create example scenario and solution document for [specific problem]
-     - Evidence: `docs/debugging/README.md` Scenario 2
+  - Evidence: `docs/debugging/README.md` Scenario 2
 - [x] **Logging for Debugging**: Implement detailed logging at critical points in code
-    - Evidence: `train_model.py` lines 44, 66, 98, 153, 162
+  - Evidence: `train_model.py` lines 44, 66, 98, 153, 162
 - [x] **Model Assertion Checks**: Add assertions to catch data/model anomalies early
-    - Evidence: `data/loaders.py` (added negative value checks)
+  - Evidence: `data/loaders.py` (added negative value checks)
 - [x] **Training Validation**: Implement sanity checks (NaN detection, shape validation, etc.)
-    - Evidence: `train_model.py` (sklearn pipeline validates automatically)
+  - Evidence: `train_model.py` (sklearn pipeline validates automatically)
 
 ---
 
 ## 3. Profiling & Optimization
 
 - [x] **CPU Profiling**: Use cProfile to profile training and inference
-    - Evidence: `scripts/profile_training.py`, output in `reports/profiling/train_model.txt`
+  - Evidence: `scripts/profile_training.py`, output in `reports/profiling/train_model.txt`
 - [x] **Memory Profiling**: Profile memory usage with memory_profiler or similar
-    - Evidence: `scripts/profile_scalene.py`, HTML report in `reports/profiling/scalene_report.html`
+  - Evidence: `scripts/profile_scalene.py`, HTML report in `reports/profiling/scalene_report.html`
 - [ ] **GPU Profiling (if applicable)**: N/A (CPU-only XGBoost)
 - [x] **Profiling Results**: Document baseline profiling results and bottlenecks identified
-    - Evidence: `docs/profiling/OPTIMIZATIONS.md`
+  - Evidence: `docs/profiling/OPTIMIZATIONS.md`
 - [x] **Optimization 1**: Vectorized haversine calculation (8x faster)
-    - Evidence: `docs/profiling/OPTIMIZATIONS.md`, `features/build_features.py`
+  - Evidence: `docs/profiling/OPTIMIZATIONS.md`, `features/build_features.py`
 - [ ] **Optimization 2**: Implement and measure additional optimization
 - [x] **Performance Benchmarks**: Document before/after performance metrics
-    - Evidence: `docs/profiling/OPTIMIZATIONS.md` (0.60s → 0.53s)
+  - Evidence: `docs/profiling/OPTIMIZATIONS.md` (0.60s → 0.53s)
 - [x] **Optimization Documentation**: Explain each optimization and its impact
-    - Evidence: `docs/profiling/OPTIMIZATIONS.md`
+  - Evidence: `docs/profiling/OPTIMIZATIONS.md`
 
 ---
 
 ## 4. Experiment Management & Tracking
 
 - [x] **MLflow Setup**: Initialize MLflow tracking server and client configuration
-    - Evidence: `configs/config.yaml` lines 6-9, `train_model.py` lines 50-51
+  - Evidence: `configs/config.yaml` lines 6-9, `train_model.py` lines 50-51
   - OR **Weights & Biases Setup**: Initialize W&B project and team workspace
     <!-- MIGHT GET THIS GOING LATER -->
 - [x] **Metric Logging**: Log training/validation metrics for each experiment
-    - Evidence: `train_model.py` lines 178-185 (train/val RMSE, MAE, R²)
+  - Evidence: `train_model.py` lines 178-185 (train/val RMSE, MAE, R²)
 - [x] **Parameter Logging**: Log Hydra params are logged
-    - Evidence: `train_model.py` lines 57-63
+  - Evidence: `train_model.py` lines 57-63
 - [x] **Model Artifact Logging**: Pipeline saved to MLflow
-     - Evidence: `train_model.py` line 201
+  - Evidence: `train_model.py` line 201
 - [x] **Experiment Comparison**: 3+ models trained and compared
-    - Evidence: `make train_all` - baseline, fast, optimized configs
+  - Evidence: `make train_all` - baseline, fast, optimized configs
 - [x] **Visualization**: MLflow UI comparison charts
-    - Evidence: MLflow UI at http://localhost:5010, Parallel Coordinates plot
+  - Evidence: MLflow UI at http://localhost:5010, Parallel Coordinates plot
 - [x] **Best Model Selection**: Documented selection criteria
-    - Evidence: Select model with lowest val_rmse and highest val_r2
+  - Evidence: Select model with lowest val_rmse and highest val_r2
 - [x] **Experiment Documentation**: All runs in MLflow with descriptions
-     - Evidence: Run names include hyperparameters for easy identification
+  - Evidence: Run names include hyperparameters for easy identification
+- [x] **Evaluation script created**
+  - File: `src/food_on_the_fly/evaluate_model.py`
+  - Supports three evaluation modes: latest, best, specific
+  - Evidence: [Line 58-110](../src/food_on_the_fly/evaluate_model.py#L58-L110)
+- [x] **Hyperparameter tracking implemented**
+  - All hyperparameters copied from training run to evaluation run
+  - Parent run metadata logged (run_id, run_name)
+  - Evidence: [Line 138-143](../src/food_on_the_fly/evaluate_model.py#L138-L143)
+  - Screenshot: ![Evaluation Hyperparameters](images/evaluation-run-hyperparameters.png)
+- [x] **Metric comparison implemented**
+  - Test vs validation performance comparison
+  - Degradation metrics calculated (absolute and percentage)
+  - Automatic overfitting detection (>10% degradation)
+  - Evidence: [Line 172-192](../src/food_on_the_fly/evaluate_model.py#L172-L192
+
+  - [x] **Makefile targets added**
+
+```bash
+    make evaluate_best     # Evaluate best model by validation metric
+    make evaluate_latest   # Evaluate most recent model
+    make evaluate_best_r2  # Evaluate best model by R² score
+    - Evidence: ../Makefile#L33-L36
+    - Configuration added
+    - Evaluation config section in configs/config.yaml
+    - Supports configurable selection modes and metrics
+    - Evidence: ../configs/config.yaml#L220-L224
 
 ---
 
@@ -159,3 +186,4 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 ---
 
 > **Checklist:** Use this as a guide for documenting your Phase 2 deliverables.
+```
