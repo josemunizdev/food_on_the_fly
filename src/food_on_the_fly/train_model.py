@@ -10,18 +10,21 @@ import hydra
 import mlflow
 import mlflow.sklearn
 import numpy as np
+import pandas as pd
 import xgboost as xgb
 from omegaconf import DictConfig, OmegaConf
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
 from food_on_the_fly.data.loaders import load_processed
 from food_on_the_fly.features.build_features import (
+    create_day_of_week_transformer,
     create_haversine_transformer,
-    create_rush_hour_transformer,
-    create_weekday_transformer,
+    # create_rush_hour_transformer,
+    # create_weekday_transformer,
+    create_hour_of_day_transformer,
 )
 from food_on_the_fly.logging_config import get_logger, setup_logging
 from food_on_the_fly.utils.monitoring import SystemMetricsLogger
@@ -31,6 +34,20 @@ logger = get_logger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = str(PROJECT_ROOT / "configs")
+
+
+def make_categorical_pipeline(transformer: Any, transformer_name: str) -> Pipeline:
+
+    def df_to_array(X: pd.DataFrame) -> np.ndarray:
+        return X.values.reshape(-1, 1)
+
+    return Pipeline(
+        [
+            (transformer_name, transformer),
+            ("to_array", FunctionTransformer(df_to_array, validate=False)),
+            ("encoder", OneHotEncoder(drop="first", handle_unknown="ignore")),
+        ]
+    )
 
 
 @hydra.main(version_base=None, config_path=CONFIG_DIR, config_name="config")
@@ -78,6 +95,8 @@ def main(cfg: DictConfig) -> None:
             target_col,
             "ID",
             "Delivery_person_ID",
+            # "Time_Orderd",
+            # "Order_Date",
         ]
         X_train = train_df.drop(columns=drop_cols)
         y_train = train_df[target_col]
@@ -96,6 +115,7 @@ def main(cfg: DictConfig) -> None:
 
         # Build preprocessing pipeline
         logger.info("Building preprocessing pipeline...")
+        # Create HaversineTransformer from config
 
         # Define column types
         numeric_features = [
@@ -120,17 +140,28 @@ def main(cfg: DictConfig) -> None:
             "Delivery_location_latitude",
             "Delivery_location_longitude",
         ]
-
-        # Create HaversineTransformer from config
         haversine_transformer = create_haversine_transformer(cfg)
-        weekday_transformer = create_weekday_transformer(cfg)
-        rush_hour_transformer = create_rush_hour_transformer(cfg)
+        # weekday_transformer = create_weekday_transformer(cfg)
+        # rush_hour_transformer = create_rush_hour_transformer(cfg)
+        hour_of_day_transformer = create_hour_of_day_transformer(cfg)
+        day_of_week_transformer = create_day_of_week_transformer(cfg)
+
         # Build column transformer
         preprocessor = ColumnTransformer(
             transformers=[
                 ("distance", haversine_transformer, location_features),
-                ("weekday", weekday_transformer, ["Order_Date"]),
-                ("rush_hour", rush_hour_transformer, ["Time_Orderd"]),
+                # ("weekday", weekday_transformer, ["Order_Date"]),
+                # ("rush_hour", rush_hour_transformer, ["Time_Orderd"]),
+                (
+                    "hour",
+                    make_categorical_pipeline(hour_of_day_transformer, "hour_of_day"),
+                    ["Time_Orderd"],
+                ),
+                (
+                    "day",
+                    make_categorical_pipeline(day_of_week_transformer, "day_of_week"),
+                    ["Order_Date"],
+                ),
                 ("numeric", StandardScaler(), numeric_features),
                 (
                     "categorical",
@@ -139,6 +170,7 @@ def main(cfg: DictConfig) -> None:
                 ),
             ],
             remainder="drop",
+            verbose_feature_names_out=True,
         )
 
         # Complete pipeline: preprocessing + XGBoost
