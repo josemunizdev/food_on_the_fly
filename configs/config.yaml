@@ -42,6 +42,9 @@ features:
   hour_of_day:
     time_col: Time_Orderd
 
+  day_of_week:
+    date_col: Order_Date
+
 logging:
   level: INFO
   output_dir: logs
