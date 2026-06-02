@@ -50,13 +50,36 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Manual workflow dispatch
 - [ ] **Docker Push**: Implement push to container registry (Docker Hub, GitHub Container Registry, or GCP)
 - [x] **CML Initialization**: Initialize CML in repository
-- [ ] **CML Workflow**: Create GitHub Actions workflow for CML that:
-  - [ ] Trains model on workflow runner
-  - [ ] Generates performance metrics
-  - [ ] Creates visualizations/plots
-  - [ ] Comments results on PR
-- [ ] **CML Metrics Output**: Document format and sample output of CML metrics
-- [ ] **CML Plots**: Generate sample plots and document in CML workflow
+  - **File**: `.github/workflows/cml.yml`
+  - **Link**: [cml.yml](../.github/workflows/cml.yml)
+  - **Description**: Automated ML reporting
+    workflow that trains model and posts results
+    on every PR
+- [x] **CML Workflow**: Create GitHub Actions workflow for CML that:
+  - [x] Trains model on workflow runner
+  - [x] Generates performance metrics (RMSE, MAE, R²)
+  - [x] Creates visualizations/plots (scatter,residual, error dist, feature importance)
+  - [x] Comments results on PR
+        **Evidence**:
+    - Example PR: [#44](link-to-pr)
+    - Workflow run: [Successful run](link-to-actions)
+    - Screenshot: ![CML Workflow](../docs/screenshots/cml_workflow_success.png)
+    - PR Comment: ![CML Comment](../docs/screenshots/cml_pr_comment.png)
+- [x] **CML Metrics Output**: Document format and sample output of CML metrics
+      **Format**: `metrics.txt` (plain text)
+       **Example Output**:
+       === TRAINING METRICS ===
+       RMSE: 4.94 minutes
+       MAE: 3.91 minutes
+       R²: 0.7180
+
+  === VALIDATION METRICS ===
+   RMSE: 5.09 minutes
+   MAE: 4.00 minutes
+   R²: 0.7073
+
+- [x] **CML Plots**: Generate sample plots and document in CML workflow
+      **Type**: Scatter, residual plots, error distribution, feature importance
 - [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
 - [ ] **Workflow Documentation**: Document CML workflow setup and customization
 
