@@ -1,6 +1,6 @@
 # Data Card - Zomato Delivery Operations Dataset
 
-**Project**: Food on the Fly | SE 489 MLOps   
+**Project**: Food on the Fly | SE 489 MLOps
 **Source**: [Kaggle - saurabhbadole/zomato-delivery-operations-analytics-dataset](https://www.kaggle.com/datasets/saurabhbadole/zomato-delivery-operations-analytics-dataset)
 
 ## Overview

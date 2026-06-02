@@ -8,10 +8,10 @@ A food delivery prediction AI for estimated delivery times
 
 - **Project Lead:** YesChef (jose.muniz@depaul.edu)
 - **Team Members:**
-    Abdul
-    Aviv
-    Imran
-    Jose
+  Abdul
+  Aviv
+  Imran
+  Jose
 
 ## Project Overview
 
@@ -61,12 +61,15 @@ flowchart TD
 ## Phase Deliverables
 
 ### Phase 1: Project Design & Model Development
+
 - See [PHASE1.md](PHASE1.md) for detailed checklist
 
 ### Phase 2: Containerization & Monitoring
+
 - See [PHASE2.md](PHASE2.md) for detailed checklist
 
 ### Phase 3: CI/CD & Deployment
+
 - See [PHASE3.md](PHASE3.md) for detailed checklist
 
 ## Phase 2: Docker, Monitoring, Profiling & Debugging
@@ -74,11 +77,13 @@ flowchart TD
 ### 🐳 Docker Usage
 
 **Build the image:**
+
 ```bash
 docker build -t food-on-the-fly:phase2 -f dockerfiles/Dockerfile .
 ```
 
 **Run training in container:**
+
 ```bash
 docker run \
   -v $(pwd)/data:/app/data \
@@ -88,11 +93,13 @@ docker run \
 ```
 
 **Run with custom model configuration:**
+
 ```bash
 docker run -e HYDRA_ARGS="model=xgboost_optimized" food-on-the-fly:phase2
 ```
 
 **Run with custom data split:**
+
 ```bash
 docker run -e HYDRA_ARGS="data.temporal_baseline_days=50" food-on-the-fly:phase2
 ```
@@ -100,12 +107,14 @@ docker run -e HYDRA_ARGS="data.temporal_baseline_days=50" food-on-the-fly:phase2
 ### 📊 Monitoring & Experiment Tracking
 
 **Start MLflow UI:**
+
 ```bash
 make mlflow
 # Opens at http://localhost:5010
 ```
 
 **What's tracked automatically:**
+
 - Training/validation metrics (RMSE, MAE, R²)
 - All hyperparameters (from Hydra config)
 - System metrics (CPU, memory, GPU if available)
@@ -113,6 +122,7 @@ make mlflow
 - Training duration
 
 **Compare experiments:**
+
 ```bash
 # Train multiple models
 make train_all
@@ -126,6 +136,7 @@ make mlflow
 ### ⚡ Profiling
 
 **CPU profiling with cProfile:**
+
 ```bash
 python scripts/profile_training.py
 
@@ -135,6 +146,7 @@ snakeviz reports/profiling/train_model.prof
 ```
 
 **Memory + CPU profiling with Scalene (sklearn/XGBoost optimized):**
+
 ```bash
 python scripts/profile_scalene.py
 open reports/profiling/scalene_report.html
@@ -142,9 +154,72 @@ open reports/profiling/scalene_report.html
 
 **Profiling results:** See [docs/profiling/OPTIMIZATIONS.md](docs/profiling/OPTIMIZATIONS.md)
 
+### Model Evaluation
+
+Evaluate trained models on the test set with comprehensive
+ hyperparameter tracking.
+
+#### Evaluation Modes
+
+The evaluation system supports three modes:
+
+1. **Latest**: Evaluate the most recent training model
+2. **Best**: Automatically find and evaluate the best model
+   by validation metric
+3. **Specific**: Evaluate a specific model by run ID
+
+#### Usage
+
+**Evaluate Best Model (Recommended for Final Testing)**
+
+```bash
+  ## Automatically finds model with lowest val_rmse
+  make evaluate_best
+
+  ## Or find model with highest R²
+  make evaluate_best_r2
+
+  ## Evaluate Latest Model
+  make evaluate_latest
+
+  ## Evaluate Specific Model
+  make evaluate evaluation.selection_mode=specific evaluation.run_id=abc123def
+```
+
+What Gets Logged
+
+Each evaluation run logs:
+
+- All hyperparameters from the training run (full
+  reproducibility)
+- Parent run metadata (run_id, run_name)
+- Test metrics (RMSE, MAE, R²)
+- Validation metrics from parent run (for comparison)
+- Degradation metrics (test vs validation performance)
+
+Example Output
+
+Model selection mode: best
+ Finding best model by metric: val_rmse (min)
+ Found 65 runs with val_rmse
+ Best model: 41a703028bec49e09ca307123110d66a
+ val_rmse: 3.9625
+ Run name: xgboost_optimized_200_d8_lr0.05
+
+Test Results:
+ RMSE: 3.98 minutes
+ MAE: 2.95 minutes
+ R²: 0.8456
+
+Validation RMSE: 3.96 minutes
+ Test RMSE: 3.98 minutes
+ Degradation: +0.02 minutes (+0.5%)
+ ✅ Test performance matches validation (good generalization)
+
 ### 🐛 Debugging
 
 **Interactive debugging with pdb/ipdb:**
+
 ```bash
 # Install ipdb
 pip install ipdb
@@ -157,6 +232,7 @@ make train
 ```
 
 **Debugging guide:** See [docs/debugging/README.md](docs/debugging/README.md) for:
+
 - pdb/ipdb command reference
 - Common debugging scenarios (NaN loss, identical predictions)
 - Docker debugging methods
@@ -167,14 +243,17 @@ make train
 Logs are written to **both console and file**:
 
 **Console** (colorized via RichHandler):
+
 - Real-time training progress
 - Errors with rich tracebacks
 
 **File** (`logs/food_on_the_fly.log`):
+
 - Persistent logs (rotated at 10MB, 5 backups)
 - Full history for debugging
 
 **View logs:**
+
 ```bash
 # Tail live logs
 tail -f logs/food_on_the_fly.log
@@ -187,15 +266,28 @@ grep "xgboost_optimized" logs/food_on_the_fly.log
 ```
 
 **Log levels:**
+
 - `DEBUG`: Detailed diagnostic info
 - `INFO`: General informational messages (default)
 - `WARNING`: Warning messages
 - `ERROR`: Error messages
 
+# Run tests locally
+
+    pytest tests/ -v --cov=food_on_the_fly --cov-report=html
+
+# View coverage report
+
+    open htmlcov/index.html
+
+# Run pre-commit hooks
+
+    pre-commit run --all-files
 
 ## Setup Instructions
 
 ### Prerequisites
+
 - Python 3.13+ installed
 - Git installed
 - (Optional) Docker and Docker Compose
@@ -203,12 +295,14 @@ grep "xgboost_optimized" logs/food_on_the_fly.log
 ### Installation
 
 **Option 1: Using uv (recommended - faster)**
+
 ```bash
 pip install uv
 uv pip install -r requirements.txt
 ```
 
 **Option 2: Using pip**
+
 ```bash
 pip install -U pip
 pip install -r requirements.txt
@@ -246,21 +340,29 @@ make help
 ## Technology Stack
 
 ### Core Dependencies
+
 - **numpy** >= 1.26.0 - Numerical computing
 - **pandas** >= 2.2.0 - Data manipulation
 - **scikit-learn** >= 1.5.0 - Machine learning algorithms
 - **matplotlib** >= 3.9.0 - Visualization
 - **tqdm** >= 4.66.0 - Progress bars
 - **pyyaml** >= 6.0 - Configuration files
+
 ### Experiment Tracking
+
 - **mlflow** >= 2.16.0 - MLflow experiment tracking
+
 ### Configuration Management
+
 - **hydra-core** >= 1.3.0 - Hydra configuration framework
 - **omegaconf** >= 2.3.0 - Hierarchical configuration
+
 ### Data Version Control
+
 - **dvc** >= 3.55.0 - Data Version Control
 
 ### Development Tools
+
 - **pytest** >= 8.0 - Testing framework
 - **pytest-cov** >= 5.0 - Code coverage
 - **ruff** >= 0.6.0 - Linting and formatting
@@ -338,11 +440,11 @@ food_on_the_fly/                  # Repository root
 
 ### Why `src/` layout?
 
-| | `src/` layout (this template) | Flat layout |
-|---|---|---|
-| Forces `pip install -e .` before import | ✅ | ❌ |
-| Catches packaging bugs early | ✅ | ❌ |
-| Adopted by | attrs, httpx, pydantic, flask, sqlalchemy | Older data-science templates |
+|                                         | `src/` layout (this template)             | Flat layout                  |
+| --------------------------------------- | ----------------------------------------- | ---------------------------- |
+| Forces `pip install -e .` before import | ✅                                        | ❌                           |
+| Catches packaging bugs early            | ✅                                        | ❌                           |
+| Adopted by                              | attrs, httpx, pydantic, flask, sqlalchemy | Older data-science templates |
 
 Data and model artifacts are accessed via the constants in `food_on_the_fly.config` (`PROJECT_ROOT`, `DATA_DIR`, `MODELS_DIR`, …) rather than relative paths — code is independent of where you invoke it from.
 
@@ -377,21 +479,22 @@ make docker_run_train
 make docs
 ```
 
- ## Team Contributions
+## Team Contributions
 
-  - [ ] **Abdul** - [Add contributions]
-  - [x] **Aviv** - Temporal data split, profiling,
-  debugging docs
-  - [x] **Jose** - Project lead, infrastructure
-  - [ ] **Imran** - [Add contributions]
+- [ ] **Abdul** - [Add contributions]
+- [x] **Aviv** - Temporal data split, profiling,
+      debugging docs
+- [x] **Jose** - Project lead, infrastructure
+- [ ] **Imran** - [Add contributions]
 
 ### Detailed Table
-  | Team Member | Phase 1 | Phase 2 |
-  |-------------|---------|---------|
-  | Aviv | Hydra, MLflow, Docker | Temporal features, Data split,profiling,docs |
-  | Jose | TBD | TBD |
-  | Abdul | TBD | TBD |
-  | Imran | TBD | TBD |
+
+| Team Member | Phase 1               | Phase 2                                      |
+| ----------- | --------------------- | -------------------------------------------- |
+| Aviv        | Hydra, MLflow, Docker | Temporal features, Data split,profiling,docs |
+| Jose        | TBD                   | TBD                                          |
+| Abdul       | TBD                   | TBD                                          |
+| Imran       | TBD                   | TBD                                          |
 
 ## Contribution Summary
 
