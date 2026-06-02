@@ -42,7 +42,13 @@ jobs:
           source .venv/bin/activate
           uv pip install -e .
 
-      # 5. Train the model (use baseline config for speed)
+      # 5. Process data (generate train/val/test splits)
+      - name: Process data
+        run: |
+          source .venv/bin/activate
+          python -m food_on_the_fly.data.temporal_split
+
+      # 6. Train the model (use baseline config for speed)
       - name: Train model and generate visualizations
         env:
           MLFLOW_ALLOW_FILE_STORE: true
@@ -50,7 +56,7 @@ jobs:
           source .venv/bin/activate
           python -m food_on_the_fly.train_model model=xgboost_baseline
 
-      # 6. Generate and post CML report (only on PRs)
+      # 7. Generate and post CML report (only on PRs)
       - name: Create CML report
         if: github.event_name == 'pull_request'
         env:
