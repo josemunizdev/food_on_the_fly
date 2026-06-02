@@ -158,3 +158,9 @@ multirun/
 
 # uv lock file
 uv.lock
+
+# CML outputs (generated during training, not committed)
+metrics.txt
+*.png
+!docs/**/*.png
+multirun/
