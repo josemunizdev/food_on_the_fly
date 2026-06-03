@@ -118,18 +118,25 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Create GCS bucket for models
   - [ ] Implement model upload from training
   - [ ] Document model retrieval process
-- [ ] **FastAPI Service**: Create FastAPI application for model serving
-  - [ ] Define inference endpoint(s)
-  - [ ] Implement request validation
-  - [ ] Add health check endpoint
-  - [ ] Document API specification
+- [x] **FastAPI Service**: Create FastAPI application for model serving
+  - [x] Define inference endpoint(s)
+  - [x] Implement request validation
+  - [x] Add health check endpoint
+  - [x] Document API specification
+        **Evidence**:
+    - App: `src/food_on_the_fly/api/main.py` — endpoints `/`, `/health`, `/predict`, `/predict/batch`
+    - Validation: `src/food_on_the_fly/api/schemas.py` — Pydantic models mirroring the raw Zomato columns
+    - Model loading: `src/food_on_the_fly/api/model_loader.py` — MLflow Staging URI or local joblib
+    - Interactive OpenAPI docs at `/docs`; usage documented in `api/README.md`
+    - Tests: `tests/test_api.py`
 - [ ] **Cloud Functions Deployment (Option A)**: Deploy inference as Cloud Function
   - [ ] Package model and FastAPI app for Cloud Functions
   - [ ] Create Cloud Function with appropriate memory/timeout
   - [ ] Configure HTTP trigger
   - [ ] Document invocation and response format
 - [ ] **Cloud Run Deployment (Option B)**: Deploy as containerized service on Cloud Run
-  - [ ] Create Dockerfile optimized for Cloud Run
+  - [x] Create Dockerfile optimized for Cloud Run
+        **Evidence**: `dockerfiles/Dockerfile.api` (uvicorn on `$PORT`); built & pushed by `.github/workflows/deploy.yml`
   - [ ] Test locally with Cloud Run emulator
   - [ ] Deploy to Cloud Run with auto-scaling
   - [ ] Document deployment process
@@ -165,7 +172,8 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Environment variables and secrets management
   - [ ] Rollback procedures
 - [ ] **API Documentation**: Document all endpoints with:
-  - [ ] Request/response schemas
+  - [x] Request/response schemas
+        **Evidence**: Pydantic schemas in `src/food_on_the_fly/api/schemas.py`; auto-generated OpenAPI at `/docs`
   - [ ] Example curl/Python requests
   - [ ] Error codes and messages
 - [ ] **Architecture Documentation**: Include diagrams showing:

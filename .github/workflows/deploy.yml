@@ -56,7 +56,7 @@ jobs:
         id: build
         run: |
           IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/api:${{ github.event.workflow_run.head_sha || github.sha }}"
-          docker build -t "$IMAGE" -f dockerfiles/Dockerfile .
+          docker build -t "$IMAGE" -f dockerfiles/Dockerfile.api .
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
