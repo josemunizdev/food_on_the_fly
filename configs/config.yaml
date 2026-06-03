@@ -39,12 +39,17 @@ features:
     lat_col2: Delivery_location_latitude
     lon_col2: Delivery_location_longitude
 
-  weekday:
-    date_col: Order_Date
-    weekday_end: 4
+  # weekday:
+  #   date_col: Order_Date
+  #   weekday_end: 4
 
-  rush_hour:
+  # rush_hour:
+  #   time_col: Time_Orderd
+  hour_of_day:
     time_col: Time_Orderd
+
+  day_of_week:
+    date_col: Order_Date
 
 logging:
   level: INFO

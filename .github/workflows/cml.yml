@@ -1,0 +1,104 @@
+name: CML Report - Food Delivery Prediction
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+# CRITICAL: Allow posting comments on PRs
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up Python with uv (faster than pip)
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      # 3. Set up CML
+      - name: Setup CML
+        uses: iterative/setup-cml@v2
+        with:
+          vega: false
+
+      # 4. Install project dependencies
+      - name: Install dependencies
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install -e .
+
+      # 5. Train the model (use baseline config for speed)
+      - name: Train model and generate visualizations
+        env:
+          MLFLOW_ALLOW_FILE_STORE: true
+        run: |
+          source .venv/bin/activate
+          python -m food_on_the_fly.train_model model=xgboost_baseline
+
+      # 6. Generate and post CML report (only on PRs)
+      - name: Create CML report
+        if: github.event_name == 'pull_request'
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source .venv/bin/activate
+
+          # Build the report
+          echo "## 🚀 Food Delivery Time Prediction - Model Report" >> report.md
+          echo "" >> report.md
+          echo "**Model**: XGBoost Baseline (50 trees, depth=3)" >> report.md
+          echo "**Commit**: \`${GITHUB_SHA:0:7}\`" >> report.md
+          echo "**Branch**: \`${GITHUB_HEAD_REF}\`" >> report.md
+          echo "" >> report.md
+
+          # Add metrics
+          echo "### 📊 Performance Metrics" >> report.md
+          echo '```' >> report.md
+          cat metrics.txt >> report.md
+          echo '```' >> report.md
+          echo "" >> report.md
+
+          # Add visualizations
+          echo "### 📈 Visualizations" >> report.md
+          echo "" >> report.md
+
+          echo "#### Prediction vs Actual" >> report.md
+          echo "How well do predictions match actual delivery times?" >> report.md
+          echo '![Prediction Scatter](./prediction_scatter.png)' >> report.md
+          echo "" >> report.md
+
+          echo "#### Residual Plot" >> report.md
+          echo "Are prediction errors randomly distributed?" >> report.md
+          echo '![Residual Plot](./residual_plot.png)' >> report.md
+          echo "" >> report.md
+
+          echo "#### Prediction Error Distribution" >> report.md
+          echo "Distribution of prediction errors (minutes)" >> report.md
+          echo '![Error Distribution](./error_distribution.png)' >> report.md
+          echo "" >> report.md
+
+          echo "#### Feature Importance" >> report.md
+          echo "Which features matter most for delivery time prediction?" >> report.md
+          echo '![Feature Importance](./feature_importance.png)' >> report.md
+          echo "" >> report.md
+
+          echo "---" >> report.md
+          echo "*Generated automatically by CML*" >> report.md
+
+          # Post the report
+          cml comment create --publish report.md

@@ -104,6 +104,64 @@ class RushHourTransformer(BaseEstimator, TransformerMixin):
         return np.array(["is_rush_hour"])
 
 
+class HourOfDayTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, time_col: str) -> None:
+        self.time_col = time_col
+
+    def fit(self, X: pd.DataFrame, y: Any = None) -> HourOfDayTransformer:
+        if self.time_col not in X.columns:
+            raise ValueError(f"HourOfDayTransformer: missing column {self.time_col}")
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        X_copy = X.copy()
+        X_copy["hour_of_day"] = pd.to_datetime(
+            X_copy[self.time_col], format="%H:%M", errors="coerce"
+        ).dt.hour
+        return X_copy[["hour_of_day"]]
+
+    def get_feature_names_out(
+        self, input_features: list[str] | None = None
+    ) -> np.ndarray:
+        return np.array(["hour_of_day"])
+
+
+class DayOfWeekTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, date_col: str) -> None:
+        self.date_col = date_col
+
+    def fit(self, X: pd.DataFrame, y: Any = None) -> DayOfWeekTransformer:
+        if self.date_col not in X.columns:
+            raise ValueError(f"DayOfWeekTransformer: missing column {self.date_col}")
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        X_copy = X.copy()
+        X_copy["day_of_week"] = pd.to_datetime(
+            X_copy[self.date_col], format="%d-%m-%Y", errors="coerce"
+        ).dt.dayofweek
+        return X_copy[["day_of_week"]]
+
+    def get_feature_names_out(
+        self, input_features: list[str] | None = None
+    ) -> np.ndarray:
+        return np.array(["day_of_week"])
+
+
+def create_hour_of_day_transformer(config: DictConfig) -> HourOfDayTransformer:
+    """Factory function to create an HourOfDayTransformer from config."""
+    params = config.features.hour_of_day
+    return HourOfDayTransformer(time_col=params.time_col)
+
+
+def create_day_of_week_transformer(config: DictConfig) -> DayOfWeekTransformer:
+    """Factory function to create a DayOfWeekTransformer from config."""
+    params = config.features.day_of_week
+    return DayOfWeekTransformer(
+        date_col=params.date_col,
+    )
+
+
 def create_haversine_transformer(config: DictConfig) -> HaversineTransformer:
     """Factory function to create a HaversineTransformer from config."""
     params = config.features.haversine

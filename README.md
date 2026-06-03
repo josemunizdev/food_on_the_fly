@@ -72,6 +72,60 @@ flowchart TD
 
 - See [PHASE3.md](PHASE3.md) for detailed checklist
 
+## Model Configuration
+
+The project uses Hydra for configuration management. Model hyperparameters are stored in `configs/model/`.
+
+### Available Model Configs:
+
+1. **xgboost_baseline** - Fast training, reasonable performance
+
+   ```bash
+   make train  # Uses baseline by default
+   # or explicitly:
+   python -m food_on_the_fly.train_model model=xgboost_baseline
+   ```
+
+2. **xgboost_fast** - Even faster training for quick experiments
+
+   ```bash
+   python -m food_on_the_fly.train_model model=xgboost_fast
+   ```
+
+3. **xgboost_optimized** - Best performance, longer training
+   ```bash
+   python -m food_on_the_fly.train_model model=xgboost_optimized
+   ```
+
+### Custom Hyperparameters:
+
+Override any parameter from command line:
+
+```bash
+python -m food_on_the_fly.train_model \
+  model=xgboost_baseline \
+  model.params.n_estimators=300 \
+  model.params.max_depth=10 \
+  model.params.learning_rate=0.05
+```
+
+### Creating New Configs:
+
+1. Copy an existing config: `configs/model/xgboost_baseline.yaml`
+2. Modify hyperparameters as needed
+3. Save as `configs/model/my_config.yaml`
+4. Run: `python -m food_on_the_fly.train_model model=my_config`
+
+#### Verify Configs Work
+
+```bash
+cd ./food_on_the_fly
+# Test each config
+python -m food_on_the_fly.train_model model=xgboost_baseline
+python -m food_on_the_fly.train_model model=xgboost_fast
+python -m food_on_the_fly.train_model model=xgboost_optimized
+```
+
 ## Phase 2: Docker, Monitoring, Profiling & Debugging
 
 ### 🐳 Docker Usage
@@ -157,7 +211,7 @@ open reports/profiling/scalene_report.html
 ### Model Evaluation
 
 Evaluate trained models on the test set with comprehensive
- hyperparameter tracking.
+hyperparameter tracking.
 
 #### Evaluation Modes
 
@@ -200,21 +254,21 @@ Each evaluation run logs:
 Example Output
 
 Model selection mode: best
- Finding best model by metric: val_rmse (min)
- Found 65 runs with val_rmse
- Best model: 41a703028bec49e09ca307123110d66a
- val_rmse: 3.9625
- Run name: xgboost_optimized_200_d8_lr0.05
+Finding best model by metric: val_rmse (min)
+Found 65 runs with val_rmse
+Best model: 41a703028bec49e09ca307123110d66a
+val_rmse: 3.9625
+Run name: xgboost_optimized_200_d8_lr0.05
 
 Test Results:
- RMSE: 3.98 minutes
- MAE: 2.95 minutes
- R²: 0.8456
+RMSE: 3.98 minutes
+MAE: 2.95 minutes
+R²: 0.8456
 
 Validation RMSE: 3.96 minutes
- Test RMSE: 3.98 minutes
- Degradation: +0.02 minutes (+0.5%)
- ✅ Test performance matches validation (good generalization)
+Test RMSE: 3.98 minutes
+Degradation: +0.02 minutes (+0.5%)
+✅ Test performance matches validation (good generalization)
 
 ### 🐛 Debugging
 
