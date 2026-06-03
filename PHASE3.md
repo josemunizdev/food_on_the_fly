@@ -1,13 +1,25 @@
 # PHASE 3: Continuous Machine Learning (CML) & Deployment
 
 ## Overview
+
 Phase 3 implements continuous integration/continuous deployment (CI/CD) pipelines and productionizes Food on the Fly on cloud infrastructure. This phase covers automated testing, containerized workflows, CML integration, and multi-platform deployment options including GCP, Cloud Run, and serverless functions.
 
 ---
 
 ## 1. Continuous Integration & Testing
 
-- [ ] **Unit Tests**: Write pytest test scripts for data processing and model components
+- [x] **Unit Tests**: Write pytest test scripts for data processing and model components
+  - [x] Test scripts for data processing, model training, and evaluation
+  - [x] Evidence:
+    - **Files**:
+      - `tests/test_data_loaders.py` - Data loading and I/O tests
+      - `tests/test_data_quality.py` - Data validation and quality checks
+      - `tests/test_features.py` - Feature engineering transformer tests
+      - `tests/test_model.py` - Model architecture and serialization tests
+      - `tests/test_training_pipeline.py` - Integration tests for training pipeline
+    - **Screenshot**: ![TestCoverage](/docs/images/test_results/test_results.png)
+    - **Coverage Report**: ![CoverageHTML](/docs/images/test_results/htmlcov_results.png)
+    - **Explanation**: We have implemented a comprehensive test suite with 52 unit tests covering critical ML components. Our testing strategy focuses on reusable code (models, features, data loaders) with 80-100% coverage, while CLI scripts are validated through integration testing and CML workflows. Overall coverage is 26%, with core ML components achieving 100% coverage for models, 85% for features, and 78% for data loaders. All tests pass in both local development and CI environments.
 - [ ] **Integration Tests**: Create integration tests for full training pipeline
 - [ ] **Test Coverage**: Aim for >80% code coverage with pytest-cov
 - [ ] **GitHub Actions - Tests**: Create workflow for running tests on every push
@@ -32,19 +44,50 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
 
 ## 2. Continuous Docker Building & CML
 
-- [ ] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
-  - [ ] Commits to main branch
-  - [ ] Version tags
-  - [ ] Manual workflow dispatch
-- [ ] **Docker Push**: Implement push to container registry (Docker Hub, GitHub Container Registry, or GCP)
-- [ ] **CML Initialization**: Initialize CML in repository
-- [ ] **CML Workflow**: Create GitHub Actions workflow for CML that:
-  - [ ] Trains model on workflow runner
-  - [ ] Generates performance metrics
-  - [ ] Creates visualizations/plots
-  - [ ] Comments results on PR
-- [ ] **CML Metrics Output**: Document format and sample output of CML metrics
-- [ ] **CML Plots**: Generate sample plots and document in CML workflow
+- [x] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
+  - [x] Commits to main branch (via workflow_run after PR checks)
+  - [x] Version tags
+  - [x] Manual workflow dispatch
+        **Evidence**:
+    - Workflow file: `.github/workflows/deploy.yml`
+    - Link: [deploy.yml](../.github/workflows/deploy.yml)
+    - Successful deployment: [Example workflowrun](link-to-github-actions-run)
+- [x] **Docker Push**: Implement push to container registry
+      **Evidence**:
+  - Dockerfile: dockerfiles/Dockerfile
+  - Registry: GCP Artifact Registry (project:[PROJECT_ID])
+  - Example image: us-central1-docker.pkg.dev/.../api:abc1234
+- [x] **CML Initialization**: Initialize CML in repository
+  - **File**: `.github/workflows/cml.yml`
+  - **Link**: [cml.yml](../.github/workflows/cml.yml)
+  - **Description**: Automated ML reporting
+    workflow that trains model and posts results
+    on every PR
+- [x] **CML Workflow**: Create GitHub Actions workflow for CML that:
+  - [x] Trains model on workflow runner
+  - [x] Generates performance metrics (RMSE, MAE, R²)
+  - [x] Creates visualizations/plots (scatter,residual, error dist, feature importance)
+  - [x] Comments results on PR
+        **Evidence**:
+    - Example PR: [#44](link-to-pr)
+    - Workflow run: [Successful run](link-to-actions)
+    - Screenshot: ![CML Workflow](../docs/screenshots/cml_workflow_success.png)
+    - PR Comment: ![CML Comment](../docs/screenshots/cml_pr_comment.png)
+- [x] **CML Metrics Output**: Document format and sample output of CML metrics
+      **Format**: `metrics.txt` (plain text)
+      **Example Output**:
+      === TRAINING METRICS ===
+      RMSE: 4.94 minutes
+      MAE: 3.91 minutes
+      R²: 0.7180
+
+  === VALIDATION METRICS ===
+  RMSE: 5.09 minutes
+  MAE: 4.00 minutes
+  R²: 0.7073
+
+- [x] **CML Plots**: Generate sample plots and document in CML workflow
+      **Type**: Scatter, residual plots, error distribution, feature importance
 - [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
 - [ ] **Workflow Documentation**: Document CML workflow setup and customization
 
