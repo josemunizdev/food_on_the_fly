@@ -1,0 +1,29 @@
+# Serving image for the Food on the Fly inference API.
+# Separate from the training Dockerfile: this one runs the FastAPI app
+# under uvicorn and listens on $PORT (Cloud Run injects PORT=8080).
+
+# Stage 1: build dependencies
+FROM python:3.11-slim-bookworm AS builder
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Stage 2: runtime
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+
+COPY . .
+RUN pip install --no-cache-dir -e .
+
+EXPOSE 8080
+
+# Use shell form so $PORT is expanded at runtime.
+CMD exec uvicorn food_on_the_fly.api.main:app --host 0.0.0.0 --port ${PORT}
