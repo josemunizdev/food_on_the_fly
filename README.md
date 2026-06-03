@@ -371,9 +371,15 @@ pip install -r requirements_dev.txt
 # Set up pre-commit hooks
 pre-commit install
 
+# Set up environment variables (required for MLflow)
+echo 'export MLFLOW_ALLOW_FILE_STORE=true' >> ~/.zshrc
+source ~/.zshrc
+
 # Run tests to verify setup
 pytest tests/
 ```
+
+**Note**: MLflow requires the `MLFLOW_ALLOW_FILE_STORE=true` environment variable to use file-based tracking. Add it to your shell profile (`.zshrc` or `.bashrc`) so it persists across sessions.
 
 ### Running the Pipeline
 

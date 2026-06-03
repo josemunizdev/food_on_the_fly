@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 
 jobs:
   train-and-report:
@@ -40,9 +41,26 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
+          uv pip install --upgrade pip
           uv pip install -e .
 
-      # 5. Train the model (use baseline config for speed)
+      # 5. Authenticate with Google Cloud (for GCS data access)
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 6. Process data (generate train/val/test splits)
+      - name: Process data
+        run: |
+          source .venv/bin/activate
+          python -m food_on_the_fly.data.temporal_split
+
+      # 7. Train the model (use baseline config for speed)
       - name: Train model and generate visualizations
         env:
           MLFLOW_ALLOW_FILE_STORE: true
@@ -50,7 +68,7 @@ jobs:
           source .venv/bin/activate
           python -m food_on_the_fly.train_model model=xgboost_baseline
 
-      # 6. Generate and post CML report (only on PRs)
+      # 8. Generate and post CML report (only on PRs)
       - name: Create CML report
         if: github.event_name == 'pull_request'
         env:

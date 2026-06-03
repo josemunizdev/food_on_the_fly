@@ -14,7 +14,7 @@ license = {text = "MIT"}
 dependencies = [
     "numpy>=1.26.0",
     "pandas>=2.2.0",
-    "scikit-learn>=1.5.0",
+    "scikit-learn>=1.5.0,<2.0.0",
     "xgboost>=2.0.0",
     "joblib>=1.4.0",
     "matplotlib>=3.9.0",
@@ -26,6 +26,8 @@ dependencies = [
     "dvc>=3.55.0",
     "psutil>=5.9.0",
     "rich>=13.7.0",
+    "pytest>=9.0.3",
+    "gcsfs>=2024.1.0",
 ]
 
 [project.optional-dependencies]
