@@ -32,50 +32,19 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
 
 ## 2. Continuous Docker Building & CML
 
-- [x] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
-  - [x] Commits to main branch (via workflow_run after PR checks)
-  - [x] Version tags
-  - [x] Manual workflow dispatch
-        **Evidence**:
-    - Workflow file: `.github/workflows/deploy.yml`
-    - Link: [deploy.yml](../.github/workflows/deploy.yml)
-    - Successful deployment: [Example workflowrun](link-to-github-actions-run)
-- [x] **Docker Push**: Implement push to container registry
-      **Evidence**:
-  - Dockerfile: dockerfiles/Dockerfile.api
-  - Registry: GCP Artifact Registry (project:[PROJECT_ID])
-  - Example image: us-central1-docker.pkg.dev/.../api:abc1234
-- [x] **CML Initialization**: Initialize CML in repository
-  - **File**: `.github/workflows/cml.yml`
-  - **Link**: [cml.yml](../.github/workflows/cml.yml)
-  - **Description**: Automated ML reporting
-    workflow that trains model and posts results
-    on every PR
-- [x] **CML Workflow**: Create GitHub Actions workflow for CML that:
-  - [x] Trains model on workflow runner
-  - [x] Generates performance metrics (RMSE, MAE, R²)
-  - [x] Creates visualizations/plots (scatter,residual, error dist, feature importance)
-  - [x] Comments results on PR
-        **Evidence**:
-    - Example PR: [#44](link-to-pr)
-    - Workflow run: [Successful run](link-to-actions)
-    - Screenshot: ![CML Workflow](../docs/screenshots/cml_workflow_success.png)
-    - PR Comment: ![CML Comment](../docs/screenshots/cml_pr_comment.png)
-- [x] **CML Metrics Output**: Document format and sample output of CML metrics
-      **Format**: `metrics.txt` (plain text)
-      **Example Output**:
-      === TRAINING METRICS ===
-      RMSE: 4.94 minutes
-      MAE: 3.91 minutes
-      R²: 0.7180
-
-  === VALIDATION METRICS ===
-  RMSE: 5.09 minutes
-  MAE: 4.00 minutes
-  R²: 0.7073
-
-- [x] **CML Plots**: Generate sample plots and document in CML workflow
-      **Type**: Scatter, residual plots, error distribution, feature importance
+- [ ] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
+  - [ ] Commits to main branch
+  - [ ] Version tags
+  - [ ] Manual workflow dispatch
+- [ ] **Docker Push**: Implement push to container registry (Docker Hub, GitHub Container Registry, or GCP)
+- [ ] **CML Initialization**: Initialize CML in repository
+- [ ] **CML Workflow**: Create GitHub Actions workflow for CML that:
+  - [ ] Trains model on workflow runner
+  - [ ] Generates performance metrics
+  - [ ] Creates visualizations/plots
+  - [ ] Comments results on PR
+- [ ] **CML Metrics Output**: Document format and sample output of CML metrics
+- [ ] **CML Plots**: Generate sample plots and document in CML workflow
 - [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
 - [ ] **Workflow Documentation**: Document CML workflow setup and customization
 
@@ -106,18 +75,25 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Create GCS bucket for models
   - [ ] Implement model upload from training
   - [ ] Document model retrieval process
-- [ ] **FastAPI Service**: Create FastAPI application for model serving
-  - [ ] Define inference endpoint(s)
-  - [ ] Implement request validation
-  - [ ] Add health check endpoint
-  - [ ] Document API specification
+- [x] **FastAPI Service**: Create FastAPI application for model serving
+  - [x] Define inference endpoint(s)
+  - [x] Implement request validation
+  - [x] Add health check endpoint
+  - [x] Document API specification
+        **Evidence**:
+    - App: `src/food_on_the_fly/api/main.py` — endpoints `/`, `/health`, `/predict`, `/predict/batch`
+    - Validation: `src/food_on_the_fly/api/schemas.py` — Pydantic models mirroring the raw Zomato columns
+    - Model loading: `src/food_on_the_fly/api/model_loader.py` — MLflow Staging URI or local joblib
+    - Interactive OpenAPI docs at `/docs`; usage documented in `api/README.md`
+    - Tests: `tests/test_api.py`
 - [ ] **Cloud Functions Deployment (Option A)**: Deploy inference as Cloud Function
   - [ ] Package model and FastAPI app for Cloud Functions
   - [ ] Create Cloud Function with appropriate memory/timeout
   - [ ] Configure HTTP trigger
   - [ ] Document invocation and response format
 - [ ] **Cloud Run Deployment (Option B)**: Deploy as containerized service on Cloud Run
-  - [ ] Create Dockerfile optimized for Cloud Run
+  - [x] Create Dockerfile optimized for Cloud Run
+        **Evidence**: `dockerfiles/Dockerfile.api` (uvicorn on `$PORT`); built & pushed by `.github/workflows/deploy.yml`
   - [ ] Test locally with Cloud Run emulator
   - [ ] Deploy to Cloud Run with auto-scaling
   - [ ] Document deployment process
@@ -153,7 +129,8 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Environment variables and secrets management
   - [ ] Rollback procedures
 - [ ] **API Documentation**: Document all endpoints with:
-  - [ ] Request/response schemas
+  - [x] Request/response schemas
+        **Evidence**: Pydantic schemas in `src/food_on_the_fly/api/schemas.py`; auto-generated OpenAPI at `/docs`
   - [ ] Example curl/Python requests
   - [ ] Error codes and messages
 - [ ] **Architecture Documentation**: Include diagrams showing:
