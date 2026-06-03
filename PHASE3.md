@@ -32,21 +32,6 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
 
 ## 2. Continuous Docker Building & CML
 
-<<<<<<< HEAD
-- [ ] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
-  - [ ] Commits to main branch
-  - [ ] Version tags
-  - [ ] Manual workflow dispatch
-- [ ] **Docker Push**: Implement push to container registry (Docker Hub, GitHub Container Registry, or GCP)
-- [ ] **CML Initialization**: Initialize CML in repository
-- [ ] **CML Workflow**: Create GitHub Actions workflow for CML that:
-  - [ ] Trains model on workflow runner
-  - [ ] Generates performance metrics
-  - [ ] Creates visualizations/plots
-  - [ ] Comments results on PR
-- [ ] **CML Metrics Output**: Document format and sample output of CML metrics
-- [ ] **CML Plots**: Generate sample plots and document in CML workflow
-=======
 - [x] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
   - [x] Commits to main branch (via workflow_run after PR checks)
   - [x] Version tags
@@ -57,7 +42,7 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
     - Successful deployment: [Example workflowrun](link-to-github-actions-run)
 - [x] **Docker Push**: Implement push to container registry
       **Evidence**:
-  - Dockerfile: dockerfiles/Dockerfile
+  - Dockerfile: dockerfiles/Dockerfile.api
   - Registry: GCP Artifact Registry (project:[PROJECT_ID])
   - Example image: us-central1-docker.pkg.dev/.../api:abc1234
 - [x] **CML Initialization**: Initialize CML in repository
@@ -91,7 +76,6 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
 
 - [x] **CML Plots**: Generate sample plots and document in CML workflow
       **Type**: Scatter, residual plots, error distribution, feature importance
->>>>>>> 4b8585e (feat: Add version tag trigger)
 - [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
 - [ ] **Workflow Documentation**: Document CML workflow setup and customization
 
