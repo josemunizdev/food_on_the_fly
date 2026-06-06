@@ -51,9 +51,8 @@ class HaversineTransformer(BaseEstimator, TransformerMixin):
 
 
 class WeekdayTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, date_col: str, weekday_end: int = 4) -> None:
+    def __init__(self, date_col: str) -> None:
         self.date_col = date_col
-        self.weekday_end = weekday_end
 
     def fit(self, X: pd.DataFrame, y: Any = None) -> WeekdayTransformer:
         if self.date_col not in X.columns:
@@ -63,10 +62,10 @@ class WeekdayTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> np.ndarray:
         # Changes the date column to 0-6 where 0 is Monday and 6 is Sunday,
         # then creates a binary feature for weekday vs weekend
+        X = X.copy()
         weekdays = pd.to_datetime(X[self.date_col], dayfirst=True).dt.weekday
-        return np.asarray((weekdays < self.weekday_end).astype(int).values).reshape(
-            -1, 1
-        )
+        X["is_weekday"] = (weekdays < 5).astype(int)
+        return X[["is_weekday"]]  # type: ignore[return-value]
 
     def get_feature_names_out(
         self, input_features: list[str] | None = None
@@ -105,7 +104,9 @@ class RushHourTransformer(BaseEstimator, TransformerMixin):
 
 
 class HourOfDayTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, time_col: str) -> None:
+    """Extracts the hour of day from a time column."""
+
+    def __init__(self, time_col: str = "Time_Orderd") -> None:
         self.time_col = time_col
 
     def fit(self, X: pd.DataFrame, y: Any = None) -> HourOfDayTransformer:
@@ -116,7 +117,7 @@ class HourOfDayTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         X_copy = X.copy()
         X_copy["hour_of_day"] = pd.to_datetime(
-            X_copy[self.time_col], format="%H:%M", errors="coerce"
+            X_copy[self.time_col], format="%H:%M:%S", errors="coerce"
         ).dt.hour
         return X_copy[["hour_of_day"]]
 
@@ -127,7 +128,9 @@ class HourOfDayTransformer(BaseEstimator, TransformerMixin):
 
 
 class DayOfWeekTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, date_col: str) -> None:
+    """Extracts the day of week from a date column."""
+
+    def __init__(self, date_col: str = "Order_Date") -> None:
         self.date_col = date_col
 
     def fit(self, X: pd.DataFrame, y: Any = None) -> DayOfWeekTransformer:
@@ -138,8 +141,8 @@ class DayOfWeekTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         X_copy = X.copy()
         X_copy["day_of_week"] = pd.to_datetime(
-            X_copy[self.date_col], format="%d-%m-%Y", errors="coerce"
-        ).dt.day_name()
+            X_copy[self.date_col], dayfirst=True, errors="coerce"
+        ).dt.weekday
 
         return X_copy[["day_of_week"]]
 
@@ -165,7 +168,6 @@ def create_weekday_transformer(config: DictConfig) -> WeekdayTransformer:
     params = config.features.weekday
     return WeekdayTransformer(
         date_col=params.date_col,
-        weekday_end=params.weekday_end,
     )
 
 
