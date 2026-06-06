@@ -16,13 +16,15 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder
 
 from food_on_the_fly.data.loaders import load_processed
 from food_on_the_fly.features.build_features import (
     create_day_of_week_transformer,
     create_haversine_transformer,
     create_hour_of_day_transformer,
+    create_rush_hour_transformer,
+    create_weekday_transformer,
 )
 from food_on_the_fly.logging_config import get_logger, setup_logging
 from food_on_the_fly.utils.monitoring import SystemMetricsLogger
@@ -143,7 +145,37 @@ def main(cfg: DictConfig) -> None:
         day_of_week_transformer = create_day_of_week_transformer(cfg)
 
         # Build column transformer
+        from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+        transformers = []
+        transformers.append(("numeric", StandardScaler(), numeric_features))
+        transformers.append(
+            (
+                "categorical",
+                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                categorical_features,
+            )
+        )
+
+        if cfg.features.haversine.enabled:
+            transformers.append(("haversine", haversine_transformer, location_features))
+        if cfg.features.hour_of_day.enabled:
+            transformers.append(
+                ("hour_of_day", hour_of_day_transformer, ["Time_Orderd"])
+            )
+        if cfg.features.day_of_week.enabled:
+            transformers.append(
+                ("day_of_week", day_of_week_transformer, ["Order_Date"])
+            )
+        if cfg.features.rush_hour.enabled:
+            rush_hour_transformer = create_rush_hour_transformer(cfg)
+            transformers.append(("rush_hour", rush_hour_transformer, ["Time_Orderd"]))
+        if cfg.features.weekday.enabled:
+            weekday_transformer = create_weekday_transformer(cfg)
+            transformers.append(("weekday", weekday_transformer, ["Order_Date"]))
+
         preprocessor = ColumnTransformer(
+<<<<<<< HEAD
             transformers=[
                 ("distance", haversine_transformer, location_features),
                 (
@@ -163,9 +195,14 @@ def main(cfg: DictConfig) -> None:
                     categorical_features,
                 ),
             ],
+=======
+            transformers=transformers,
+>>>>>>> 9576b62 (feat: add config-driven feature toggles and fix transformers)
             remainder="drop",
             verbose_feature_names_out=True,
         )
+        enabled_transformers = [name for name, _, _ in preprocessor.transformers]
+        logger.info(f"Enabled feature transformers: {enabled_transformers}")
 
         # Complete pipeline: preprocessing + XGBoost
         pipeline = Pipeline(
