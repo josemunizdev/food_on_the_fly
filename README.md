@@ -542,19 +542,20 @@ make docs
 ## Team Contributions
 
 - [ ] **Abdul** - [Add contributions]
-- [x] **Aviv** - Temporal data split, profiling,
-      debugging docs
+- [x] **Aviv** - Platform & Deployment: Hydra/MLflow, temporal features, config pipelines, Docker, CML
 - [x] **Jose** - Project lead, infrastructure
 - [ ] **Imran** - [Add contributions]
 
 ### Detailed Table
 
-| Team Member | Phase 1               | Phase 2                                      |
-| ----------- | --------------------- | -------------------------------------------- |
-| Aviv        | Hydra, MLflow, Docker | Temporal features, Data split,profiling,docs |
-| Jose        | TBD                   | TBD                                          |
-| Abdul       | TBD                   | TBD                                          |
-| Imran       | TBD                   | TBD                                          |
+| Team Member                                                                                                                                                                                                                                   | Phase 1                                                                     | Phase 2           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------- |
+| Aviv                                                                                                                                                                                                                                          | Hydra+MLflow+XGBoost (PR#16), Multi-model configs (PR#37), Haversine (PR#1) | Temporal features |
+| (PR#27,#28), System metrics (PR#36), Rotating logs (PR#40)                                                                                                                                                                                    | Config toggles, Temporal split, Pipeline fix (44%                           |
+| RMSE↓), CML (PR#44), Docker (PR#46), Docs (PR#43), Test suite (test_evaluation.py, test_temporal_split.py), Config-driven feature toggles, Temporal split with data leakage prevention, Pipeline bug fix (RMSE: 8.34→4.70 min, R²: 0.32→0.74) |
+| Jose                                                                                                                                                                                                                                          | TBD                                                                         | TBD               |
+| Abdul                                                                                                                                                                                                                                         | TBD                                                                         | TBD               |
+| Imran                                                                                                                                                                                                                                         | TBD                                                                         | TBD               |
 
 ## Contribution Summary
 
