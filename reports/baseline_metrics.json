@@ -1,9 +1,9 @@
 {
   "model": "xgboost_baseline",
-  "description": "Phase 1 documented baseline (see REPORT.md)",
-  "val_rmse": 4.01,
-  "val_mae": 3.19,
-  "val_r2": 0.8207,
-  "captured": "2026-05-16",
-  "source": "PHASE1 baseline run (xgboost_baseline config); see REPORT.md"
+  "description": "CML reference baseline (xgboost_baseline config: 50 trees, depth=3) on the temporal validation split. Note: REPORT.md documents a larger config (100 trees, depth=6) at RMSE 4.01; this file tracks the CML-config model so PR comparisons are like-for-like.",
+  "val_rmse": 5.08,
+  "val_mae": 3.99,
+  "val_r2": 0.7088,
+  "captured": "2026-06-06",
+  "source": "CML workflow baseline run on dev (xgboost_baseline config)"
 }
