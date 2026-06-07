@@ -139,14 +139,27 @@ class DayOfWeekTransformer(BaseEstimator, TransformerMixin):
         X_copy = X.copy()
         X_copy["day_of_week"] = pd.to_datetime(
             X_copy[self.date_col], format="%d-%m-%Y", errors="coerce"
-        ).dt.day_name()
-
+        ).dt.dayofweek
         return X_copy[["day_of_week"]]
 
     def get_feature_names_out(
         self, input_features: list[str] | None = None
     ) -> np.ndarray:
         return np.array(["day_of_week"])
+
+
+def create_hour_of_day_transformer(config: DictConfig) -> HourOfDayTransformer:
+    """Factory function to create an HourOfDayTransformer from config."""
+    params = config.features.hour_of_day
+    return HourOfDayTransformer(time_col=params.time_col)
+
+
+def create_day_of_week_transformer(config: DictConfig) -> DayOfWeekTransformer:
+    """Factory function to create a DayOfWeekTransformer from config."""
+    params = config.features.day_of_week
+    return DayOfWeekTransformer(
+        date_col=params.date_col,
+    )
 
 
 def create_haversine_transformer(config: DictConfig) -> HaversineTransformer:
@@ -174,22 +187,6 @@ def create_rush_hour_transformer(config: DictConfig) -> RushHourTransformer:
     params = config.features.rush_hour
     return RushHourTransformer(
         time_col=params.time_col,
-    )
-
-
-def create_hour_of_day_transformer(config: DictConfig) -> HourOfDayTransformer:
-    """Factory function to create a HourOfDayTransformer from config."""
-    params = config.features.hour_of_day
-    return HourOfDayTransformer(
-        time_col=params.time_col,
-    )
-
-
-def create_day_of_week_transformer(config: DictConfig) -> DayOfWeekTransformer:
-    """Factory function to create a DayOfWeekTransformer from config."""
-    params = config.features.day_of_week
-    return DayOfWeekTransformer(
-        date_col=params.date_col,
     )
 
 

@@ -1,0 +1,9 @@
+=== TRAINING METRICS ===
+RMSE: 4.95 minutes
+MAE:  3.92 minutes
+R²:   0.7170
+
+=== VALIDATION METRICS ===
+RMSE: 5.09 minutes
+MAE:  4.00 minutes
+R²:   0.7072

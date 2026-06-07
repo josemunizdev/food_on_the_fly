@@ -22,8 +22,6 @@ from food_on_the_fly.data.loaders import load_processed
 from food_on_the_fly.features.build_features import (
     create_day_of_week_transformer,
     create_haversine_transformer,
-    # create_rush_hour_transformer,
-    # create_weekday_transformer,
     create_hour_of_day_transformer,
 )
 from food_on_the_fly.logging_config import get_logger, setup_logging
@@ -141,8 +139,6 @@ def main(cfg: DictConfig) -> None:
             "Delivery_location_longitude",
         ]
         haversine_transformer = create_haversine_transformer(cfg)
-        # weekday_transformer = create_weekday_transformer(cfg)
-        # rush_hour_transformer = create_rush_hour_transformer(cfg)
         hour_of_day_transformer = create_hour_of_day_transformer(cfg)
         day_of_week_transformer = create_day_of_week_transformer(cfg)
 
@@ -150,8 +146,6 @@ def main(cfg: DictConfig) -> None:
         preprocessor = ColumnTransformer(
             transformers=[
                 ("distance", haversine_transformer, location_features),
-                # ("weekday", weekday_transformer, ["Order_Date"]),
-                # ("rush_hour", rush_hour_transformer, ["Time_Orderd"]),
                 (
                     "hour",
                     make_categorical_pipeline(hour_of_day_transformer, "hour_of_day"),
