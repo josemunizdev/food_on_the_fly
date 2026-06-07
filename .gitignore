@@ -151,6 +151,7 @@ config/local_settings.py
 
 # MLflow artifacts
 mlruns/
+mlflow.db
 
 # Hydra outputs
 outputs/
