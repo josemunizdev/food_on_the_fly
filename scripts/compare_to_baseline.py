@@ -49,7 +49,7 @@ def parse_metrics_txt(path: Path) -> dict[str, float]:
 def fmt_delta(delta: float, lower_is_better: bool, places: int = 3) -> str:
     sign = "+" if delta > 0 else ""
     rounded = round(delta, places)
-    if abs(rounded) < (10 ** -places):
+    if abs(rounded) < (10**-places):
         return f"{sign}{rounded:.{places}f} | same"
     improved = (rounded < 0) if lower_is_better else (rounded > 0)
     flag = "better" if improved else "worse"
