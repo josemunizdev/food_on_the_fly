@@ -13,6 +13,7 @@ nav:
   - Home: index.md
   - Getting Started: getting_started.md
   - API Reference: api.md
+  - CML Workflow: cml.md
 
 markdown_extensions:
   - admonition

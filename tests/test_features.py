@@ -5,7 +5,9 @@ import pandas as pd
 import pytest
 
 from food_on_the_fly.features.build_features import (
+    DayOfWeekTransformer,
     HaversineTransformer,
+    HourOfDayTransformer,
     RushHourTransformer,
     WeekdayTransformer,
 )
@@ -126,19 +128,19 @@ class TestWeekdayTransformer:
         df = pd.DataFrame({"Order_Date": ["13-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
-        assert result[0, 0] == 1
+        assert result["is_weekday"].iloc[0] == 1
 
     def test_saturday_is_weekend(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["18-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
-        assert result[0, 0] == 0
+        assert result["is_weekday"].iloc[0] == 0
 
     def test_sunday_is_weekend(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["19-01-2025"]})
         transformer.fit(df)
         result = transformer.transform(df)
-        assert result[0, 0] == 0
+        assert result["is_weekday"].iloc[0] == 0
 
     def test_output_shape(self, transformer: WeekdayTransformer) -> None:
         df = pd.DataFrame({"Order_Date": ["13-01-2025", "14-01-2025", "18-01-2025"]})
@@ -160,7 +162,7 @@ class TestWeekdayTransformer:
         )
         transformer.fit(df)
         result = transformer.transform(df)
-        assert set(result.flatten()).issubset({0, 1})
+        assert set(result["is_weekday"].values).issubset({0, 1})
 
     def test_missing_column_raises(self, transformer: WeekdayTransformer) -> None:
         bad_df = pd.DataFrame({"wrong_col": ["13-01-2025"]})
@@ -221,3 +223,55 @@ class TestRushHourTransformer:
     def test_feature_names_out(self, transformer: RushHourTransformer) -> None:
         names = transformer.get_feature_names_out()
         assert list(names) == ["is_rush_hour"]
+
+
+class TestDayOfWeekTransformer:
+    """Tests for DayOfWeekTransformer."""
+
+    def test_monday_is_zero(self) -> None:
+        """Monday should be encoded as 0."""
+        df = pd.DataFrame({"Order_Date": ["01-01-2024"]})  # This is a Monday
+        transformer = DayOfWeekTransformer()
+
+        result = transformer.fit_transform(df)
+
+        assert result["day_of_week"].iloc[0] == 0
+
+    def test_sunday_is_six(self) -> None:
+        """Sunday should be encoded as 6."""
+        df = pd.DataFrame({"Order_Date": ["07-01-2024"]})  # This is a Sunday
+        transformer = DayOfWeekTransformer()
+
+        result = transformer.fit_transform(df)
+
+        assert result["day_of_week"].iloc[0] == 6
+
+
+class TestHourOfDayTransformer:
+    """Tests for HourOfDayTransformer."""
+
+    def test_extracts_hour_correctly(self) -> None:
+        """Should extract hour from time string."""
+        df = pd.DataFrame({"Time_Orderd": ["12:30:45", "18:15:30", "06:00:00"]})
+        transformer = HourOfDayTransformer()
+
+        result = transformer.fit_transform(df)
+
+        assert result["hour_of_day"].tolist() == [12, 18, 6]
+
+    def test_output_shape(self) -> None:
+        """Should return DataFrame with one column."""
+        df = pd.DataFrame({"Time_Orderd": ["12:00:00"] * 5})
+        transformer = HourOfDayTransformer()
+
+        result = transformer.fit_transform(df)
+
+        assert result.shape == (5, 1)
+
+    def test_feature_names_out(self) -> None:
+        """Should return correct feature name."""
+        transformer = HourOfDayTransformer()
+
+        names = transformer.get_feature_names_out()
+
+        assert names[0] == "hour_of_day"
