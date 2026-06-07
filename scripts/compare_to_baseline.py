@@ -34,7 +34,9 @@ def parse_metrics_txt(path: Path) -> dict[str, float]:
     def grab(label: str) -> float:
         m = re.search(rf"{label}\s*:\s*([-+]?\d*\.?\d+)", val_block)
         if not m:
-            raise ValueError(f"Could not parse '{label}' from validation block of {path}")
+            raise ValueError(
+                f"Could not parse '{label}' from validation block of {path}"
+            )
         return float(m.group(1))
 
     return {
