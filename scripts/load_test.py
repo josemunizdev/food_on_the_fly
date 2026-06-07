@@ -56,7 +56,9 @@ def random_order(rng: random.Random) -> dict[str, Any]:
         "Vehicle_condition": rng.randint(0, 3),
         "Type_of_order": rng.choice(_ORDER_TYPE),
         "Type_of_vehicle": rng.choice(_VEHICLE_TYPE),
-        "multiple_deliveries": float(rng.choices([0, 1, 2, 3], weights=[50, 30, 15, 5])[0]),
+        "multiple_deliveries": float(
+            rng.choices([0, 1, 2, 3], weights=[50, 30, 15, 5])[0]
+        ),
         "Festival": rng.choices(["No", "Yes"], weights=[90, 10])[0],
         "City": rng.choice(_CITY_TYPE),
     }
@@ -101,10 +103,22 @@ async def send_request(
         t0 = time.perf_counter()
         try:
             r = await client.post(f"{url}/predict", json=payload, timeout=timeout)
-            results.append({"ok": r.is_success, "status": r.status_code, "latency_s": time.perf_counter() - t0})
+            results.append(
+                {
+                    "ok": r.is_success,
+                    "status": r.status_code,
+                    "latency_s": time.perf_counter() - t0,
+                }
+            )
         except httpx.RequestError:
             # status 0 = network/timeout error
-            results.append({"ok": False, "status": 0, "latency_s": time.perf_counter() - t0})
+            results.append(
+                {
+                    "ok": False,
+                    "status": 0,
+                    "latency_s": time.perf_counter() - t0,
+                }
+            )
 
 
 async def run_load_test(args: argparse.Namespace) -> tuple[list[dict], float]:
@@ -121,7 +135,11 @@ async def run_load_test(args: argparse.Namespace) -> tuple[list[dict], float]:
         t_start = time.perf_counter()
         tasks = []
         async for _ in _ticker(rate_per_sec, args.duration):
-            tasks.append(asyncio.create_task(send_request(client, args.url, sem, rng, results, args.timeout)))
+            tasks.append(
+                asyncio.create_task(
+                    send_request(client, args.url, sem, rng, results, args.timeout)
+                )
+            )
         await asyncio.gather(*tasks)
         elapsed = time.perf_counter() - t_start
 
@@ -135,7 +153,9 @@ def _percentile(sorted_vals: list[float], p: float) -> float:
     return sorted_vals[k]
 
 
-def print_summary(results: list[dict], elapsed: float, args: argparse.Namespace) -> None:
+def print_summary(
+    results: list[dict], elapsed: float, args: argparse.Namespace
+) -> None:
     successes = [r for r in results if r["ok"]]
     errors = [r for r in results if not r["ok"]]
     total = len(results)
@@ -184,12 +204,20 @@ def print_summary(results: list[dict], elapsed: float, args: argparse.Namespace)
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Load test the Food on the Fly prediction API.")
+    p = argparse.ArgumentParser(
+        description="Load test the Food on the Fly prediction API."
+    )
     p.add_argument("--url", default="http://localhost:8080", help="API base URL")
     p.add_argument("--rate", type=float, default=100.0, help="Requests per minute")
-    p.add_argument("--duration", type=float, default=60.0, help="Test duration in seconds")
-    p.add_argument("--timeout", type=float, default=10.0, help="Per-request timeout (seconds)")
-    p.add_argument("--seed", type=int, default=None, help="RNG seed for reproducibility")
+    p.add_argument(
+        "--duration", type=float, default=60.0, help="Test duration in seconds"
+    )
+    p.add_argument(
+        "--timeout", type=float, default=10.0, help="Per-request timeout (seconds)"
+    )
+    p.add_argument(
+        "--seed", type=int, default=None, help="RNG seed for reproducibility"
+    )
     p.add_argument("--no-warmup", action="store_true", help="Skip /health check")
     return p.parse_args()
 
