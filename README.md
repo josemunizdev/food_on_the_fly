@@ -548,14 +548,17 @@ make docs
 
 ### Detailed Table
 
-| Team Member                                                                                                                                                                                                                                   | Phase 1                                                                     | Phase 2           |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------- |
-| Aviv                                                                                                                                                                                                                                          | Hydra+MLflow+XGBoost (PR#16), Multi-model configs (PR#37), Haversine (PR#1) | Temporal features |
-| (PR#27,#28), System metrics (PR#36), Rotating logs (PR#40)                                                                                                                                                                                    | Config toggles, Temporal split, Pipeline fix (44%                           |
-| RMSE↓), CML (PR#44), Docker (PR#46), Docs (PR#43), Test suite (test_evaluation.py, test_temporal_split.py), Config-driven feature toggles, Temporal split with data leakage prevention, Pipeline bug fix (RMSE: 8.34→4.70 min, R²: 0.32→0.74) |
-| Jose                                                                                                                                                                                                                                          | TBD                                                                         | TBD               |
-| Abdul                                                                                                                                                                                                                                         | TBD                                                                         | TBD               |
-| Imran                                                                                                                                                                                                                                         | TBD                                                                         | TBD               |
+| Team Member | Phase 1                                                                                                | Phase 2 | Phase 3 |
+| ----------- | ------------------------------------------------------------------------------------------------------ | ------- | ------- |
+| **Aviv**    | Hydra+MLflow+XGBoost integration (PR#16)<br>Multi-model configs (PR#37)<br>Haversine transformer       |
+| (PR#1)      | Temporal features (PR#27, #28)<br>System metrics & observability (PR#36)<br>Rotating file logs (PR#40) |
+
+Config-driven feature toggles<br>Temporal split with data leakage prevention<br>**Critical bug fix:** Pipeline
+integration (RMSE: 8.34→4.70, R²: 0.32→0.74)<br>CML workflow (PR#44)<br>Docker deployment
+(PR#46)<br>Documentation (PR#43)<br>Test suite development <br>Temporal split with data leakage prevention<br>Test suite development (test_evaluation.py, test_temporal_split.py)<br> date format handling |
+| **Jose** | TBD | TBD | TBD |
+| **Abdul** | TBD | TBD | TBD |
+| **Imran** | TBD | TBD | TBD |
 
 ## Contribution Summary
 
