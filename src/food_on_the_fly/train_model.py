@@ -175,29 +175,7 @@ def main(cfg: DictConfig) -> None:
             transformers.append(("weekday", weekday_transformer, ["Order_Date"]))
 
         preprocessor = ColumnTransformer(
-<<<<<<< HEAD
-            transformers=[
-                ("distance", haversine_transformer, location_features),
-                (
-                    "hour",
-                    make_categorical_pipeline(hour_of_day_transformer, "hour_of_day"),
-                    ["Time_Orderd"],
-                ),
-                (
-                    "day",
-                    make_categorical_pipeline(day_of_week_transformer, "day_of_week"),
-                    ["Order_Date"],
-                ),
-                ("numeric", StandardScaler(), numeric_features),
-                (
-                    "categorical",
-                    OneHotEncoder(drop="first", handle_unknown="ignore"),
-                    categorical_features,
-                ),
-            ],
-=======
             transformers=transformers,
->>>>>>> 9576b62 (feat: add config-driven feature toggles and fix transformers)
             remainder="drop",
             verbose_feature_names_out=True,
         )
