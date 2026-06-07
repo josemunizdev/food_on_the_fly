@@ -91,6 +91,11 @@ jobs:
           echo '```' >> report.md
           echo "" >> report.md
 
+          # Add model comparison vs. baseline
+          python scripts/compare_to_baseline.py
+          cat comparison.md >> report.md
+          echo "" >> report.md
+
           # Add visualizations
           echo "### 📈 Visualizations" >> report.md
           echo "" >> report.md

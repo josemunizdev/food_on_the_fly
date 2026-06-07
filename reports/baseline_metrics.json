@@ -1,0 +1,9 @@
+{
+  "model": "xgboost_baseline",
+  "description": "Phase 1 documented baseline (see REPORT.md)",
+  "val_rmse": 4.01,
+  "val_mae": 3.19,
+  "val_r2": 0.8207,
+  "captured": "2026-05-16",
+  "source": "PHASE1 baseline run (xgboost_baseline config); see REPORT.md"
+}
