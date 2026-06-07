@@ -45,8 +45,10 @@ Phase 3 implements continuous integration/continuous deployment (CI/CD) pipeline
   - [ ] Comments results on PR
 - [ ] **CML Metrics Output**: Document format and sample output of CML metrics
 - [ ] **CML Plots**: Generate sample plots and document in CML workflow
-- [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
-- [ ] **Workflow Documentation**: Document CML workflow setup and customization
+- [x] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
+      - Evidence: (Abdul Momin): `scripts/compare_to_baseline.py`, `reports/baseline_metrics.json`; comparison table on PR #53 (merged to dev)
+- [x] **Workflow Documentation**: Document CML workflow setup and customization
+      - Evidence: (Abdul Momin): `docs/cml.md` (registered in `docs/mkdocs.yml` nav); PR #56
 
 ---
 
