@@ -26,23 +26,35 @@ data:
   random_state: 42
   val_split: 0.1
   # Temporal split configuration, this is only to mimic real-world data drift/eval
+  date_col: Order_Date
   temporal_baseline_days: 40 # First 40 days for train/val/test
   temporal_window_days: 7 # Weekly windows for drift detection
-  temporal_train_ratio: 0.7 # 70% of baseline for training
+  train_ratio: 0.7 # 70% of baseline for training
   temporal_val_ratio: 0.15 # 15% of baseline for validation
   temporal_test_ratio: 0.15 # 15% of baseline for testing
 
 features:
   haversine:
+    enabled: true
     lat_col1: Restaurant_latitude
     lon_col1: Restaurant_longitude
     lat_col2: Delivery_location_latitude
     lon_col2: Delivery_location_longitude
 
+  weekday:
+    enabled: true
+    date_col: Order_Date
+
+  rush_hour:
+    enabled: true
+    time_col: Time_Orderd
+
   hour_of_day:
+    enabled: false
     time_col: Time_Orderd
 
   day_of_week:
+    enabled: false
     date_col: Order_Date
 
 logging:
