@@ -1,0 +1,49 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'models/pipeline.joblib'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ secrets.HF_SPACE_ID }}
+        run: |
+          pip install huggingface_hub
+
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          space_id = os.environ["HF_SPACE_ID"]
+
+          # Upload app files
+          api.upload_folder(
+              folder_path="app",
+              repo_id=space_id,
+              repo_type="space",
+              commit_message="Deploy from GitHub Actions",
+          )
+
+          # Upload model
+          api.upload_file(
+              path_or_fileobj="models/pipeline.joblib",
+              path_in_repo="pipeline.joblib",
+              repo_id=space_id,
+              repo_type="space",
+              commit_message="Update model",
+          )
+          EOF
