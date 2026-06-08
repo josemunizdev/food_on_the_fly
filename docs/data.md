@@ -82,3 +82,39 @@ Per team discussion, data is split by date rather than randomly:
 | Drift | Mar 24 - Apr 6 (last 14 days) | ~14,851 | Simulate new data for pipeline monitoring |
 
 Splits tracked via DVC with MD5 hashes for reproducibility. Random state = 42.
+
+## Feature Dictionary
+
+Features passed into the XGBoost pipeline after preprocessing.
+
+### Numeric (StandardScaler)
+
+| Feature | Source Column |
+|---|---|
+| Delivery_person_Age | Delivery_person_Age |
+| Delivery_person_Ratings | Delivery_person_Ratings |
+| Vehicle_condition | Vehicle_condition |
+| multiple_deliveries | multiple_deliveries |
+
+### Categorical (OneHotEncoder, drop='first')
+
+| Source Column | Categories |
+|---|---|
+| Weather_conditions | Cloudy, Fog, Sandstorms, Stormy, Sunny, Windy |
+| Road_traffic_density | Low, Medium, High, Jam |
+| Type_of_order | Snack, Meal, Drinks, Buffet |
+| Type_of_vehicle | motorcycle, scooter, electric_scooter, bicycle |
+| Festival | Yes, No |
+| City | Urban, Metropolitian, Semi-Urban |
+
+### Engineered Features
+
+| Feature | Source | Description | Enabled by default |
+|---|---|---|---|
+| distance_km | Restaurant_lat/lon + Delivery_lat/lon | Haversine great-circle distance in km | Yes |
+| is_weekday | Order_Date | 1 if Monday–Friday, 0 if weekend | Yes |
+| is_rush_hour | Time_Orderd | 1 if 11:00–13:00 or 18:00–21:00, else 0 | Yes |
+| hour_of_day | Time_Orderd | Hour extracted from order time (0–23) | No |
+| day_of_week | Order_Date | Day of week (0=Monday, 6=Sunday) | No |
+
+Toggle engineered features in `configs/config.yaml` under `features.<name>.enabled`.
