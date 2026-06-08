@@ -544,7 +544,7 @@ make docs
 - [ ] **Abdul** - [Add contributions]
 - [x] **Aviv** - Platform & Deployment: Hydra/MLflow, temporal features, config pipelines, Docker, CML
 - [x] **Jose** - Project lead, infrastructure
-- [ ] **Imran** - [Add contributions]
+- [x] **Imran** - Data exploration & EDA notebook, data quality tests, feature transformer tests, load testing, data card & feature dictionary, Streamlit UI, concept drift simulation
 
 ### Detailed Table
 
