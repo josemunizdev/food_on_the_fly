@@ -63,7 +63,9 @@ class WeekdayTransformer(BaseEstimator, TransformerMixin):
         # Changes the date column to 0-6 where 0 is Monday and 6 is Sunday,
         # then creates a binary feature for weekday vs weekend
         X = X.copy()
-        weekdays = pd.to_datetime(X[self.date_col], dayfirst=True).dt.weekday
+        weekdays = pd.to_datetime(
+            X[self.date_col], format="mixed", dayfirst=True
+        ).dt.weekday
         X["is_weekday"] = (weekdays < 5).astype(int)
         return X[["is_weekday"]]  # type: ignore[return-value]
 
@@ -141,7 +143,7 @@ class DayOfWeekTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         X_copy = X.copy()
         X_copy["day_of_week"] = pd.to_datetime(
-            X_copy[self.date_col], dayfirst=True, errors="coerce"
+            X_copy[self.date_col], format="mixed", dayfirst=True, errors="coerce"
         ).dt.weekday
 
         return X_copy[["day_of_week"]]
