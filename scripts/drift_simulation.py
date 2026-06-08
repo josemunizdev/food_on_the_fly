@@ -1,4 +1,4 @@
-"""Concept drift simulation """
+"""Concept drift simulation"""
 
 import argparse
 import json
