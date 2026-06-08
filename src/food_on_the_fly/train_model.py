@@ -350,6 +350,14 @@ def main(cfg: DictConfig) -> None:
         mlflow.sklearn.log_model(pipeline, "model")
         logger.info("Model logged to MLflow")
 
+        # Save pipeline locally for serving (Gradio app / Cloud Run)
+        import joblib
+
+        models_dir = Path(cfg.paths.models_dir)
+        models_dir.mkdir(parents=True, exist_ok=True)
+        joblib.dump(pipeline, models_dir / "pipeline.joblib")
+        logger.info("Pipeline saved to %s/pipeline.joblib", cfg.paths.models_dir)
+
         logger.info("Training complete! 🎉")
 
 
